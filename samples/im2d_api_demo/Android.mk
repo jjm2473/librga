@@ -19,7 +19,8 @@ LOCAL_CFLAGS += -Wall -Werror -Wunreachable-code
 
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/../.. \
-    $(LOCAL_PATH)/../../include
+    $(LOCAL_PATH)/../../include \
+    $(LOCAL_PATH)/../../im2d_api
 
 LOCAL_SHARED_LIBRARIES := \
     libcutils \
@@ -30,7 +31,7 @@ LOCAL_SHARED_LIBRARIES := \
     libGLESv1_CM \
     libhardware \
     librga \
-	libnativewindow
+    libnativewindow
 
 LOCAL_HEADER_LIBRARIES += \
     libutils_headers \
@@ -68,7 +69,7 @@ endif
 
 LOCAL_SRC_FILES:= \
     rgaImDemo.cpp \
-	args.cpp
+    args.cpp
 
 LOCAL_MODULE:= rgaImDemo
 
