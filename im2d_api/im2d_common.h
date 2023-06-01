@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Rockchip Electronics Co., Ltd.
+ * Copyright (C) 2022 Rockchip Electronics Co., Ltd.
  * Authors:
  *  Cerf Yu <cerf.yu@rock-chips.com>
  *
@@ -15,69 +15,135 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef _im2d_common_h_
+#define _im2d_common_h_
 
-#ifndef _RGA_IM2D_COMMON_H_
-#define _RGA_IM2D_COMMON_H_
+#include "im2d_type.h"
 
-#include "drmrga.h"
-#include "im2d.h"
-#include "im2d_hardware.h"
-
-#define ALIGN(val, align) (((val) + ((align) - 1)) & ~((align) - 1))
-#define DOWN_ALIGN(val, align) ((val) & ~((align) - 1))
-#define UNUSED(...) (void)(__VA_ARGS__)
-/*
- * version bit:
- *     0~7b   build
- *     8~15b  revision
- *     16~23b minor
- *     24~31b major
+/**
+ * Query RGA basic information, supported resolution, supported format, etc.
+ *
+ * @param name
+ *      RGA_VENDOR
+ *      RGA_VERSION
+ *      RGA_MAX_INPUT
+ *      RGA_MAX_OUTPUT
+ *      RGA_INPUT_FORMAT
+ *      RGA_OUTPUT_FORMAT
+ *      RGA_EXPECTED
+ *      RGA_ALL
+ *
+ * @returns a string describing properties of RGA.
  */
-#define RGA_GET_API_VERSION(v) {\
-    (((v) >> 24) & 0xff), \
-    (((v) >> 16) & 0xff), \
-    (((v) >> 8) & 0xff), \
-    {0}\
-    }
+IM_EXPORT_API const char* querystring(int name);
 
-#define ERR_MSG_LEN 300
+/**
+ * String to output the error message
+ *
+ * @param status
+ *      process result value.
+ *
+ * @returns error message.
+ */
+#define imStrError(...) \
+    ({ \
+        const char* im2d_api_err; \
+        int __args[] = {__VA_ARGS__}; \
+        int __argc = sizeof(__args)/sizeof(int); \
+        if (__argc == 0) { \
+            im2d_api_err = imStrError_t(IM_STATUS_INVALID_PARAM); \
+        } else if (__argc == 1){ \
+            im2d_api_err = imStrError_t((IM_STATUS)__args[0]); \
+        } else { \
+            im2d_api_err = ("Fatal error, imStrError() too many parameters\n"); \
+            printf("Fatal error, imStrError() too many parameters\n"); \
+        } \
+        im2d_api_err; \
+    })
+IM_C_API const char* imStrError_t(IM_STATUS status);
 
-int imSetErrorMsg(const char* format, ...);
+/**
+ * check im2d api header file
+ *
+ * @param header_version
+ *      Default is RGA_CURRENT_API_HEADER_VERSION, no need to change if there are no special cases.
+ *
+ * @returns no error or else negative error code.
+ */
+IM_API IM_STATUS imcheckHeader(im_api_version_t header_version = RGA_CURRENT_API_HEADER_VERSION);
 
-bool rga_is_buffer_valid(rga_buffer_t buf);
-bool rga_is_rect_valid(im_rect rect);
-void empty_structure(rga_buffer_t *src, rga_buffer_t *dst, rga_buffer_t *pat,
-                                im_rect *srect, im_rect *drect, im_rect *prect, im_opt_t *opt);
-IM_STATUS rga_set_buffer_info(rga_buffer_t dst, rga_info_t* dstinfo);
-IM_STATUS rga_set_buffer_info(const rga_buffer_t src, rga_buffer_t dst, rga_info_t* srcinfo, rga_info_t* dstinfo);
-inline void rga_apply_rect(rga_buffer_t *image, im_rect *rect) {
-    if (rect->width > 0 && rect->height > 0) {
-        image->width = rect->width;
-        image->height = rect->height;
-    }
-}
+/**
+ * check RGA basic information, supported resolution, supported format, etc.
+ *
+ * @param src
+ * @param dst
+ * @param pat
+ * @param src_rect
+ * @param dst_rect
+ * @param pat_rect
+ * @param mode_usage
+ *
+ * @returns no error or else negative error code.
+ */
+#define imcheck(src, dst, src_rect, dst_rect, ...) \
+    ({ \
+        IM_STATUS __ret = IM_STATUS_NOERROR; \
+        rga_buffer_t __pat; \
+        im_rect __pat_rect; \
+        memset(&__pat, 0, sizeof(rga_buffer_t)); \
+        memset(&__pat_rect, 0, sizeof(im_rect)); \
+        int __args[] = {__VA_ARGS__}; \
+        int __argc = sizeof(__args)/sizeof(int); \
+        if (__argc == 0) { \
+            __ret = imcheck_t(src, dst, __pat, src_rect, dst_rect, __pat_rect, 0); \
+        } else if (__argc == 1){ \
+            __ret = imcheck_t(src, dst, __pat, src_rect, dst_rect, __pat_rect, __args[0]); \
+        } else { \
+            __ret = IM_STATUS_FAILED; \
+            printf("check failed\n"); \
+        } \
+        __ret; \
+    })
+#define imcheck_composite(src, dst, pat, src_rect, dst_rect, pat_rect, ...) \
+    ({ \
+        IM_STATUS __ret = IM_STATUS_NOERROR; \
+        int __args[] = {__VA_ARGS__}; \
+        int __argc = sizeof(__args)/sizeof(int); \
+        if (__argc == 0) { \
+            __ret = imcheck_t(src, dst, pat, src_rect, dst_rect, pat_rect, 0); \
+        } else if (__argc == 1){ \
+            __ret = imcheck_t(src, dst, pat, src_rect, dst_rect, pat_rect, __args[0]); \
+        } else { \
+            __ret = IM_STATUS_FAILED; \
+            printf("check failed\n"); \
+        } \
+        __ret; \
+    })
+IM_C_API IM_STATUS imcheck_t(const rga_buffer_t src, const rga_buffer_t dst, const rga_buffer_t pat,
+                             const im_rect src_rect, const im_rect dst_rect, const im_rect pat_rect, const int mode_usage);
+/* Compatible with the legacy symbol */
+IM_C_API void rga_check_perpare(rga_buffer_t *src, rga_buffer_t *dst, rga_buffer_t *pat,
+                                im_rect *src_rect, im_rect *dst_rect, im_rect *pat_rect, int mode_usage);
 
-IM_STATUS rga_get_info(rga_info_table_entry *return_table);
-IM_STATUS rga_check_driver(void);
+/**
+ * block until all execution is complete
+ *
+ * @param release_fence_fd
+ *      RGA job release fence fd
+ *
+ * @returns success or else negative error code.
+ */
+IM_EXPORT_API IM_STATUS imsync(int release_fence_fd);
 
-IM_STATUS rga_check_info(const char *name, const rga_buffer_t info, const im_rect rect, int resolution_usage);
-IM_STATUS rga_check_limit(rga_buffer_t src, rga_buffer_t dst, int scale_usage, int mode_usage);
-IM_STATUS rga_check_format(const char *name, rga_buffer_t info, im_rect rect, int format_usage, int mode_usgae);
-IM_STATUS rga_check_align(const char *name, rga_buffer_t info, int byte_stride);
-IM_STATUS rga_check_blend(rga_buffer_t src, rga_buffer_t pat, rga_buffer_t dst, int pat_enable, int mode_usage);
-IM_STATUS rga_check_rotate(int mode_usage, rga_info_table_entry &table);
-IM_STATUS rga_check_feature(rga_buffer_t src, rga_buffer_t pat, rga_buffer_t dst,
-                                   int pat_enable, int mode_usage, int feature_usage);
+/**
+ * config
+ *
+ * @param name
+ *      enum IM_CONFIG_NAME
+ * @param value
+ *
+ * @returns success or else negative error code.
+ */
+IM_EXPORT_API IM_STATUS imconfig(IM_CONFIG_NAME name, uint64_t value);
 
-IM_API IM_STATUS rga_import_buffers(struct rga_buffer_pool *buffer_pool);
-IM_API IM_STATUS rga_release_buffers(struct rga_buffer_pool *buffer_pool);
-IM_API rga_buffer_handle_t rga_import_buffer(uint64_t memory, int type, uint32_t size);
-IM_API rga_buffer_handle_t rga_import_buffer(uint64_t memory, int type, im_handle_param_t *param);
-IM_API IM_STATUS rga_release_buffer(int handle);
-
-IM_STATUS rga_get_opt(im_opt_t *opt, void *ptr);
-
-IM_API im_ctx_id_t rga_begin_job(uint32_t flags);
-IM_API IM_STATUS rga_cancel(im_ctx_id_t id);
-
-#endif
+#endif /* #ifndef _im2d_common_h_ */

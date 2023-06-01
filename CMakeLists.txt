@@ -1,3 +1,14 @@
+cmake_minimum_required(VERSION 3.5)
+
+include(${CMAKE_SOURCE_DIR}/cmake/utils.cmake)
+
+if (EXISTS ${BUILD_TOOLCHAINS_PATH})
+    message("load ${BUILD_TOOLCHAINS_PATH}")
+    include(${BUILD_TOOLCHAINS_PATH})
+endif()
+
+project(rga)
+
 if(NOT CMAKE_BUILD_TYPE)
     message("default to Release build for GCC builds")
     set(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -6,19 +17,17 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 if(CMAKE_BUILD_TARGET STREQUAL android_ndk)
-    message("set ndk toolchain")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error -DLOG_TAG=librga")
+    message("cmake build android ndk")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-error -DLOG_TAG=librga")
     add_compile_options(-DLINUX)
     add_compile_options(-DANDROID_VNDK)
+    string(REPLACE "-DANDROID" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
 
 if(CMAKE_BUILD_TARGET STREQUAL buildroot)
-    message("set ${BUILD_TOOlCHAINS_PATH} toolchain")
-    set(CMAKE_TOOLCHAIN_FILE
-        ${CMAKE_SOURCE_DIR}/${BUILD_TOOlCHAINS_PATH})
-    include(${CMAKE_SOURCE_DIR}/${BUILD_TOOlCHAINS_PATH})
-    add_compile_options(-DLINUX)
+    message("cmake build buildroot")
     set(CMAKE_CXX_FLAGS "-std=c++11 -O2 -pthread")
+    add_compile_options(-DLINUX)
 endif()
 
 if(CMAKE_BUILD_TARGET STREQUAL cmake_linux)
@@ -37,11 +46,6 @@ if(CMAKE_BUILD_TARGET STREQUAL cmake_linux)
 
 endif()
 
-cmake_minimum_required(VERSION 2.8)
-
-#project name
-project(rga)
-
 if (BUILD_WITH_LIBDRM STREQUAL true)
     message("RGA build with libdrm")
     add_compile_options(-DLIBDRM=1)
@@ -51,7 +55,14 @@ if (BUILD_WITH_LIBDRM STREQUAL true)
     )
 endif()
 
+if (BUILD_WITH_VERSION STREQUAL true)
+    im2d_api_extract_version()
+endif()
+
 set(IM2D_SRCS
+    core/utils/android_utils/src/android_utils.cpp
+    core/utils/drm_utils/src/drm_utils.cpp
+    core/utils/utils.cpp
     core/RockchipRga.cpp
     core/GrallocOps.cpp
     core/NormalRga.cpp
@@ -59,40 +70,45 @@ set(IM2D_SRCS
     core/RgaUtils.cpp
     core/RgaApi.cpp
     core/rga_sync.cpp
-    im2d_api/im2d_common.cpp
-    im2d_api/im2d.cpp)
+    im2d_api/src/im2d_log.cpp
+    im2d_api/src/im2d_impl.cpp
+    im2d_api/src/im2d.cpp)
 
 set(IM2D_INCLUDE
     ./
+    ./im2d_api
     ./include
-    external/libdrm
-    external/libdrm/include/drm
+    ./core
+    ./core/hardware
+    ./core/utils
+    ./core/3rdparty/libdrm/include/drm
     hardware/libhardware/include/hardware
     hardware/libhardware/modules/gralloc
     system/core/liblog/includeNDROID_NDK_REVISION_REGEX
     system/core/libion/kernel-headers)
 
 set(IM2D_PUBLIC_HEADER
-	im2d_api/im2d_version.h
-	im2d_api/im2d_type.h
-	im2d_api/im2d_hardware.h
-	im2d_api/im2d.h
-	im2d_api/im2d.hpp
-	include/drmrga.h
-	include/rga.h
-	include/RgaApi.h
-	include/RockchipRga.h
-	include/RgaUtils.h
-	include/RgaSingleton.h
-	include/RgaMutex.h
-	include/GrallocOps.h
+    im2d_api/im2d_version.h
+    im2d_api/im2d_type.h
+    im2d_api/im2d_buffer.h
+    im2d_api/im2d_common.h
+    im2d_api/im2d_single.h
+    im2d_api/im2d_task.h
+    im2d_api/im2d_mpi.h
+    im2d_api/im2d_expand.h
+    im2d_api/im2d.h
+    im2d_api/im2d.hpp
+    include/drmrga.h
+    include/rga.h
+    include/RgaApi.h
+    include/RockchipRga.h
+    include/RgaUtils.h
+    include/RgaSingleton.h
+    include/RgaMutex.h
+    include/GrallocOps.h
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_EXT} -DUN_NEED_GL")
-
-if(CMAKE_BUILD_TARGET STREQUAL android_ndk)
-    string(REPLACE "-DANDROID" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-endif()
 
 #build object
 set(OBJECT_NAME ${PROJECT_NAME}-object)
@@ -110,7 +126,16 @@ set(SHARED_LIB_NAME ${PROJECT_NAME})
 add_library(${SHARED_LIB_NAME} SHARED $<TARGET_OBJECTS:${OBJECT_NAME}>)
 
 target_include_directories(${SHARED_LIB_NAME} PUBLIC ${IM2D_INCLUDE})
-set_target_properties(${SHARED_LIB_NAME} PROPERTIES PUBLIC_HEADER "${IM2D_PUBLIC_HEADER}")
+
+if(NOT DEFINED IM2D_API_VERSION)
+    set_target_properties(${SHARED_LIB_NAME} PROPERTIES
+        PUBLIC_HEADER "${IM2D_PUBLIC_HEADER}")
+else ()
+    message("Generated im2d api version: v${IM2D_API_VERSION}")
+    set_target_properties(${SHARED_LIB_NAME} PROPERTIES
+        PUBLIC_HEADER "${IM2D_PUBLIC_HEADER}"
+        VERSION ${IM2D_API_VERSION} SOVERSION ${IM2D_API_VERSION_MAJOR})
+endif()
 
 # build static lib
 set(STATIC_LIB_NAME ${PROJECT_NAME}-static)
@@ -145,3 +170,4 @@ install(TARGETS  ${STATIC_LIB_NAME}
 
 # build im2d api demo
 add_subdirectory(samples/im2d_api_demo)
+#add_subdirectory(samples)

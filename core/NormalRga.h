@@ -43,6 +43,7 @@
 
 #include "drmrga.h"
 #include "rga.h"
+#include "rga_ioctl.h"
 
 #include "NormalRgaContext.h"
 
@@ -88,11 +89,9 @@ void        NormalRgaSetLogOnceFlag(int log);
 void        NormalRgaSetAlwaysLogFlag(bool log);
 void        NormalRgaLogOutRgaReq(struct rga_req rgaReg);
 
-#ifdef ANDROID
 void        is_debug_log(void);
 int         is_out_log(void);
-int         hwc_get_int_property(const char* pcProperty, const char* default_value);
-#endif
+int         get_int_property(void);
 
 int         NormalRgaSetFdsOffsets(struct rga_req *req,
                                    uint16_t src_fd,     uint16_t dst_fd,
@@ -307,3 +306,5 @@ int         NormalRgaMmuFlag(struct rga_req *msg,
                              int  src_mmu_en,   int  dst_mmu_en);
 
 #endif
+
+void NormalRgaCompatModeConvertRga2(rga2_req *req, rga_req *orig_req);
