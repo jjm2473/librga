@@ -46,6 +46,8 @@
 #define RK_GRALLOC_USAGE_WITHIN_4G              GRALLOC_USAGE_PRIVATE_11
 #define RK_GRALLOC_USAGE_RGA_ACCESS             RK_GRALLOC_USAGE_WITHIN_4G
 
+#define LOCAL_FILE_PATH "/data"
+
 using namespace android;
 
 int main(void) {
@@ -74,6 +76,10 @@ int main(void) {
     dst_buf_size = dst_width * dst_height * get_bpp_from_format(dst_format);
 
     /* allocate GraphicBuffer */
+    src_gb_flags |= GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_SW_READ_OFTEN;
+    dst_gb_flags |= GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_SW_READ_OFTEN;
+
+    /* for CORE_RGA2 */
     src_gb_flags |= RK_GRALLOC_USAGE_WITHIN_4G;
     dst_gb_flags |= RK_GRALLOC_USAGE_WITHIN_4G;
 
@@ -88,13 +94,13 @@ int main(void) {
         return -1;
     }
 
-    ret = src_gb->lock(0, (void **)&src_buf);
+    ret = src_gb->lock(GRALLOC_USAGE_SW_WRITE_OFTEN, (void **)&src_buf);
     if (ret) {
         printf("lock buffer error : %s\n",strerror(errno));
         return -1;
     }
 
-    ret = get_buf_from_file(src_buf, src_format, src_width, src_height, 0);
+    ret = read_image_from_file(src_buf, LOCAL_FILE_PATH, src_width, src_height, src_format, 0);
     if (ret < 0) {
         printf ("open file %s so memset!\n", "fault");
         draw_rgba((char *)src_buf, src_width, src_height);
@@ -106,7 +112,7 @@ int main(void) {
         return -1;
     }
 
-    ret = dst_gb->lock(0, (void **)&dst_buf);
+    ret = dst_gb->lock(GRALLOC_USAGE_SW_WRITE_OFTEN, (void **)&dst_buf);
     if (ret) {
         printf("lock buffer error : %s\n",strerror(errno));
         return -1;
@@ -152,14 +158,14 @@ int main(void) {
         goto release_buffer;
     }
 
-    ret = dst_gb->lock(0, (void **)&dst_buf);
+    ret = dst_gb->lock(GRALLOC_USAGE_SW_READ_OFTEN, (void **)&dst_buf);
     if (ret) {
         printf("lock buffer error : %s\n",strerror(errno));
         return -1;
     }
 
     printf("output [0x%x, 0x%x, 0x%x, 0x%x]\n", dst_buf[0], dst_buf[1], dst_buf[2], dst_buf[3]);
-    output_buf_data_to_file(dst_buf, dst_format, dst_width, dst_height, 0);
+    write_image_to_file(dst_buf, LOCAL_FILE_PATH, dst_width, dst_height, dst_format, 0);
 
     ret = dst_gb->unlock();
 	if (ret) {

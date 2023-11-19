@@ -25,7 +25,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
-#include <math.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <time.h>
@@ -277,7 +276,7 @@ RGA_SINGLETON_STATIC_INSTANCE(RockchipRga)
             RkRgaLogOutUserPara(src);
             RkRgaLogOutUserPara(dst);
             RkRgaLogOutUserPara(src1);
-            ALOGE("This output the user patamaters when rga call blit fail");
+            ALOGE("This output the user parameters when rga call blit fail");
         }
         return ret;
     }
@@ -303,7 +302,7 @@ RGA_SINGLETON_STATIC_INSTANCE(RockchipRga)
         if (ret) {
             RkRgaLogOutUserPara(src);
             RkRgaLogOutUserPara(dst);
-            ALOGE("This output the user patamaters when rga call CollorPalette fail");
+            ALOGE("This output the user parameters when rga call CollorPalette fail");
         }
         return ret;
     }

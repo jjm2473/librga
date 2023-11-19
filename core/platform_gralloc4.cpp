@@ -61,7 +61,7 @@
 
 #include <drm_fourcc.h>
 
-#ifdef ANDROID_12
+#ifdef USE_HARDWARE_ROCKCHIP
 #include <hardware/hardware_rockchip.h>
 #endif
 
@@ -215,7 +215,7 @@ int get_width(buffer_handle_t handle, uint64_t* width)
     int err = get_metadata(mapper, handle, MetadataType_Width, decodeWidth, width);
     if (err != android::OK)
     {
-        E("err : %d", err);
+        ALOGE("err : %d", err);
     }
 
     return err;
@@ -228,7 +228,7 @@ int get_height(buffer_handle_t handle, uint64_t* height)
     int err = get_metadata(mapper, handle, MetadataType_Height, decodeHeight, height);
     if (err != android::OK)
     {
-        E("err : %d", err);
+        ALOGE("err : %d", err);
     }
 
     return err;
@@ -243,7 +243,7 @@ int get_pixel_stride(buffer_handle_t handle, int* pixel_stride)
     int err = get_format_requested(handle, &format_requested);
     if (err != android::OK )
     {
-        E("err : %d", err);
+        ALOGE("err : %d", err);
         return err;
     }
 
@@ -253,7 +253,7 @@ int get_pixel_stride(buffer_handle_t handle, int* pixel_stride)
         err = get_metadata(mapper, handle, MetadataType_PlaneLayouts, decodePlaneLayouts, &layouts);
         if (err != android::OK || layouts.size() < 1)
         {
-            E("Failed to get plane layouts. err : %d", err);
+            ALOGE("Failed to get plane layouts. err : %d", err);
             return err;
         }
 
@@ -273,7 +273,7 @@ int get_pixel_stride(buffer_handle_t handle, int* pixel_stride)
         err = get_width(handle, &width);
         if (err != android::OK )
         {
-            E("err : %d", err);
+            ALOGE("err : %d", err);
             return err;
         }
 
@@ -295,7 +295,7 @@ int get_byte_stride(buffer_handle_t handle, int* byte_stride)
     int err = get_format_requested(handle, &format_requested);
     if (err != android::OK )
     {
-        E("err : %d", err);
+        ALOGE("err : %d", err);
         return err;
     }
 
@@ -305,7 +305,7 @@ int get_byte_stride(buffer_handle_t handle, int* byte_stride)
         err = get_metadata(mapper, handle, MetadataType_PlaneLayouts, decodePlaneLayouts, &layouts);
         if (err != android::OK || layouts.size() < 1)
         {
-            E("Failed to get plane layouts. err : %d", err);
+            ALOGE("Failed to get plane layouts. err : %d", err);
             return err;
         }
 
@@ -324,7 +324,7 @@ int get_byte_stride(buffer_handle_t handle, int* byte_stride)
         err = get_width(handle, &width);
         if (err != android::OK )
         {
-            E("err : %d", err);
+            ALOGE("err : %d", err);
             return err;
         }
 
@@ -344,7 +344,7 @@ int get_format_requested(buffer_handle_t handle, int* format_requested)
     int err = get_metadata(mapper, handle, MetadataType_PixelFormatRequested, decodePixelFormatRequested, &format);
     if (err != android::OK)
     {
-        E("Failed to get pixel_format_requested. err : %d", err);
+        ALOGE("Failed to get pixel_format_requested. err : %d", err);
         return err;
     }
 
@@ -360,7 +360,7 @@ int get_usage(buffer_handle_t handle, uint64_t* usage)
     int err = get_metadata(mapper, handle, MetadataType_Usage, decodeUsage, usage);
     if (err != android::OK)
     {
-        E("Failed to get pixel_format_requested. err : %d", err);
+        ALOGE("Failed to get pixel_format_requested. err : %d", err);
         return err;
     }
 
@@ -374,7 +374,7 @@ int get_allocation_size(buffer_handle_t handle, uint64_t* allocation_size)
     int err = get_metadata(mapper, handle, MetadataType_AllocationSize, decodeAllocationSize, allocation_size);
     if (err != android::OK)
     {
-        E("Failed to get allocation_size. err : %d", err);
+        ALOGE("Failed to get allocation_size. err : %d", err);
         return err;
     }
 
@@ -389,7 +389,7 @@ int get_share_fd(buffer_handle_t handle, int* share_fd)
     int err = get_metadata(mapper, handle, ArmMetadataType_PLANE_FDS, decodeArmPlaneFds, &fds);
     if (err != android::OK)
     {
-        E("Failed to get plane_fds. err : %d", err);
+        ALOGE("Failed to get plane_fds. err : %d", err);
         return err;
     }
     assert (fds.size() > 0);
@@ -424,6 +424,10 @@ void freeBuffer(buffer_handle_t handle)
     auto ret = mapper.freeBuffer(buffer);
 
     auto error = (ret.isOk()) ? static_cast<Error>(ret) : kTransactionError;
+    if (error != Error::NONE)
+    {
+        ALOGE("freeBuffer(%p) failed: %d", handle, error);
+    }
 }
 
 status_t lock(buffer_handle_t bufferHandle,
@@ -466,7 +470,6 @@ void unlock(buffer_handle_t bufferHandle)
     auto &mapper = get_service();
     auto buffer = const_cast<native_handle_t*>(bufferHandle);
 
-    int releaseFence = -1;
     Error error;
     auto ret = mapper.unlock(buffer,
                              [&](const auto& tmpError, const auto& tmpReleaseFence)
@@ -479,12 +482,10 @@ void unlock(buffer_handle_t bufferHandle)
         auto fenceHandle = tmpReleaseFence.getNativeHandle(); // 预期 unlock() 不会返回有效的 release_fence.
         if (fenceHandle && fenceHandle->numFds == 1)
         {
-            E("got unexpected valid fd of release_fence : %d", fenceHandle->data[0]);
+            ALOGE("got unexpected valid fd of release_fence : %d", fenceHandle->data[0]);
 
             int fd = dup(fenceHandle->data[0]);
-            if (fd >= 0) {
-                releaseFence = fd;
-            } else {
+            if (fd < 0) {
                 ALOGD("failed to dup unlock release fence");
                 sync_wait(fenceHandle->data[0], -1);
             }
