@@ -18,24 +18,44 @@ librga_srcs = [
     'core/utils/utils.cpp',
     'core/GrallocOps.cpp',
     'core/NormalRgaApi.cpp',
-	'core/NormalRga.cpp',
-	'core/RgaUtils.cpp',
-	'core/RockchipRga.cpp',
-	'core/RgaApi.cpp',
-	'core/rga_sync.cpp',
+    'core/NormalRga.cpp',
+    'core/RgaUtils.cpp',
+    'core/RgaUtils_symbol.cpp',
+    'core/RockchipRga.cpp',
+    'core/RgaApi.cpp',
+    'core/rga_sync.cpp',
     'im2d_api/src/im2d_log.cpp',
+    'im2d_api/src/im2d_debugger.cpp',
+    'im2d_api/src/im2d_context.cpp',
+    'im2d_api/src/im2d_job.cpp',
     'im2d_api/src/im2d_impl.cpp',
-	'im2d_api/src/im2d.cpp',
+    'im2d_api/src/im2d.cpp',
 ]
 
-incdir = include_directories('include', 'im2d_api', 'core/hardware', 'core/utils', 'core/3rdparty/libdrm/include/drm')
+incdir = include_directories(
+    'include',
+    'im2d_api',
+    'core',
+    'core/hardware',
+    'core/utils',
+    'core/3rdparty/libdrm/include/drm',
+    'core/3rdparty/android_hal')
 
 librga = shared_library(
     'rga',
     librga_srcs,
     dependencies : [libthreads_dep],
-	include_directories : incdir,
+    include_directories : incdir,
     version : meson.project_version(),
+    cpp_args : ['-w'],
+    install : true,
+)
+
+librga = static_library(
+    'rga',
+    librga_srcs,
+    dependencies : [libthreads_dep],
+    include_directories : incdir,
     cpp_args : ['-w'],
     install : true,
 )
@@ -46,11 +66,11 @@ install_headers(
     'include/GrallocOps.h',
     'include/RockchipRga.h',
     'include/RgaMutex.h',
-	'include/RgaSingleton.h',
-	'include/RgaUtils.h',
-	'include/RgaApi.h',
-	'im2d_api/im2d.h',
-	'im2d_api/im2d.hpp',
+    'include/RgaSingleton.h',
+    'include/RgaUtils.h',
+    'include/RgaApi.h',
+    'im2d_api/im2d.h',
+    'im2d_api/im2d.hpp',
     'im2d_api/im2d_type.h',
     'im2d_api/im2d_version.h',
     'im2d_api/im2d_buffer.h',
@@ -68,22 +88,33 @@ pkgconfig.generate(
     name : 'librga',
     version : meson.project_version(),
     description : 'Userspace interface to Rockchip RGA 2D accelerator',
+    extra_cflags : ['-I${includedir}/rga'],
 )
 
 librga_demo_option = get_option('librga_demo')
 if librga_demo_option != 'false'
     demo_src = [
-		'samples/im2d_api_demo/rgaImDemo.cpp',
-		'samples/im2d_api_demo/args.cpp'
-	]
-    demo_incdir = include_directories('include', 'im2d_api')
+        'samples/utils/utils.cpp',
+        'samples/utils/allocator/dma_alloc.cpp',
+        'samples/utils/allocator/drm_alloc.cpp',
+        'samples/im2d_api_demo/rgaImDemo.cpp',
+        'samples/im2d_api_demo/args.cpp',
+    ]
+    demo_incdir = include_directories(
+        'include',
+        'im2d_api',
+        'samples/utils',
+        'samples/utils/allocator/include',
+        'utils/3rdparty/libdrm/include',
+        'utils/3rdparty/libdrm/include/libdrm'
+    )
     librga_dep = dependency('librga')
     executable(
-            'rgaImDemo',
-            demo_src,
-            include_directories : demo_incdir,
-            dependencies : librga_dep,
-            cpp_args : ['-Wno-pedantic'],
-            install : true,
+        'rgaImDemo',
+        demo_src,
+        include_directories : demo_incdir,
+        dependencies : librga_dep,
+        cpp_args : ['-Wno-pedantic'],
+        install : true,
     )
 endif

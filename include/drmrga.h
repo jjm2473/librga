@@ -28,12 +28,10 @@
 #ifdef ANDROID
 #define DRMRGA_HARDWARE_MODULE_ID "librga"
 
-#include <hardware/gralloc.h>
-#include <hardware/hardware.h>
 #include <system/graphics.h>
 #include <cutils/native_handle.h>
 
-#if defined(ANDROID_12) || defined(USE_HARDWARE_ROCKCHIP)
+#if defined(ANDROID_12) || defined(USE_HARDWARE_ROCKCHIP) || defined(__ANDROID_VENDOR_API__)
 #include <hardware/hardware_rockchip.h>
 #endif
 
@@ -81,6 +79,8 @@ enum {
     AFORMAT,
     ASIZE,
     ATYPE,
+    AFOURCC,
+    AMODIFIER,
 };
 /*****************************************************************************/
 
@@ -144,6 +144,11 @@ typedef struct rga_dither {
 struct rga_mosaic_info {
     uint8_t enable;
     uint8_t mode;
+};
+
+struct rga_gauss_config {
+    uint32_t size;
+    uint64_t coe_ptr;
 };
 
 struct rga_pre_intr_info {
@@ -310,7 +315,13 @@ typedef struct rga_info {
         int job_handle;
     };
 
-    char reserve[402];
+    uint16_t rgba5551_flags;
+    uint8_t rgba5551_alpha0;
+    uint8_t rgba5551_alpha1;
+
+    struct rga_gauss_config gauss_config;
+
+    char reserve[386];
 } rga_info_t;
 
 

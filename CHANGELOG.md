@@ -1,5 +1,171 @@
 # 更新日志
 
+## 1.10.5 (2025-07-29)
+
+该版本RGA驱动建议更新至1.3.10及以上版本，最低支持1.2.4。
+
+### 新增
+
+- 新增支持芯片RK1820。
+- 适配RT-Thread v5.1.x。
+- C++ librga.so 新增 RgaUtils API对应的 C-Symbol 。
+- impalette()支持输入格式RK_FORMAT_YCbCr_400。
+- 新增示例代码。
+  - palette_demo。
+  - C 环境调用demo（samples/copy_demo/src/rga_copy_splice_c_demo.c）。
+- rga_slt支持命令行配置。
+
+### 变更
+
+- 解除RK3506、RV1103B虚高的过度约束。
+- 文档中移除芯片代号。
+- legacy API（RockchipRga.h、rgaAPI.h）初始化时打印弃用声明。
+
+### 修复
+
+- 修复部分编译环境编译报错（system/graphics.h相关）。
+- 修复YUV444格式无法正确的CSC的问题。
+- 修复多进程并发调用imfill概率出现参数错误的问题。
+- 修复C lirbga.so无法通过strings命令查询版本的问题。
+- 修复Android平台 8.1及以下使用Android.mk编译失败的问题。
+
+
+
+## 1.10.4 （2025-04-03）
+
+该版本RGA驱动建议更新至1.3.9及以上版本，最低支持1.2.4。
+
+### 新增
+
+- 新增支持芯片RV1126B。
+- 支持更多CSC配置组合。
+
+### 变更
+
+- 补充YUV 10bit格式offset对齐限制。
+
+### 修复
+
+- 修复部分编译环境编译报错。
+- 修复部分芯片配置BT.709-limit range色域工作异常问题（驱动建议更新至1.3.9）。
+- 修复imsetColorSpace()无法配置src1/pat通道色域的问题。
+
+
+
+## 1.10.3 （2025-01-16）
+
+该版本RGA驱动建议更新至1.3.7及以上版本，最低支持1.2.4。
+
+### 新增
+
+- 新增支持RT-Thread系统平台，支持cmake、scons编译。
+- 新增支持芯片RV1103B、RK3506。
+- 新增Gaussian Blur API imgaussianBlur()。
+- 文档新增不同版本的API支持情况列表。
+
+### 优化
+
+- 支持C版本编译。
+
+### 变更
+
+- RockchipRga API后续不再同步更新支持新功能、特性。
+
+
+
+## 1.10.2 （2024-12-26）
+
+该版本RGA驱动建议更新至1.3.5及以上版本，最低支持1.2.4。
+
+### 新增
+
+- 支持Android 15。
+- meson支持编译静态库。
+- 支持RGB、YUV等没有Alpha通道的格式之间通过GlobalAlpha执行alpha叠加。
+- 支持对FBC压缩格式GraphicBuffer自动配置为对应FBC格式。
+
+### 优化
+
+- 优化SLT功能覆盖。
+- SLT支持RK3576。
+- 调整IM2D API调试日志格式。
+
+### 变更
+
+- 更新文档网盘链接，由原来的百度网盘更改为联想网盘。
+- task-mode最大支持task数由50变更为256。（驱动须更新至1.3.4）
+- imsetAlphaBit/imsetOpacity/imsetColorSpace变更为C API。
+
+### 修复
+
+- 修复 ‘ENABLE’ 与Android HAL定义冲突的问题。
+- 修复开始调试日志后无法获取context报错。
+- 修复opt存在非预期配置的异常。
+- 修复full_csc配置导致出现非预期配置的异常。
+- 修复RK_FORMAT_YCbCr_422_10b_SP、RK_FORMAT_YCrCb_422_10b_SP定义错误问题。
+- 修复alpha_demo错误的配置YUV格式在dst通道的问题。
+
+
+
+## 1.10.1 （2024-03-06）
+
+该版本RGA驱动建议更新至1.3.0及以上版本，最低支持1.2.4。
+
+### 新增
+
+- 新增支持芯片RK3576。
+- 新增支持格式A8、Y8、YUV444_SP定义。
+- 新增支持配置压缩模式RKFBC64x4、AFBC32x8 split mode。
+- 新增支持配置TILE4x4模式。
+- 新增支持配置缩放插值算法。
+- 新增imsetAlphaBit()，支持配置ARGB5551/ABGR5551 alpha映射。
+
+### 优化
+
+- 优化示例代码CMake编译配置。
+
+### 变更
+
+- 源码更新包由原百度网盘迁移至联想网盘。
+- 最低要求的CMake版本由原3.5更改为3.12。
+- imresize() interpolation参数支持配置。
+- RGA2不支持RGBA5551/BGRA5551/RGBA4444/BGRA4444格式。
+
+### 修复
+
+- 修复ARGB5551/ABGR5551/ARGB4444/ABGR4444格式内存排列错误的问题。
+- 修复旧接口RkRgaIsReady()返回值异常的错误。
+
+
+
+## 1.10.0_[9] （2023-12-11）
+
+该版本RGA驱动建议更新至1.3.0及以上版本，最低支持1.2.4。
+
+### 新增
+
+- 增加关于性能影响的Q&A。
+- rgaImDemo支持更多功能
+  - 支持RV1106直接运行。
+  - 增加更多blend模式。
+  - 颜色填充支持自定义颜色。
+
+### 变更
+
+- 旧接口（RockchipRga API、C_API）维持原有功能，不支持globalAlpha功能。
+
+### 修复
+
+- 修复RK1808无法获取硬件信息的错误。
+- 更正rga_req结构体错误的预留内存大小。
+- 修正示例代码中一些退出流程。
+- 修复示例代码中GraphicBuffer无法分配内存的问题。
+- 修复importbuffer API返回值非预期。
+- 修复调用旧接口导致fd 0被异常关闭的问题。
+- 修复旧接口配置blend模式失效的问题。
+
+
+
 ## 1.10.0 （2023-09-12）
 
 该版本RGA驱动建议更新至1.3.0及以上版本，最低支持1.2.4。
@@ -30,6 +196,8 @@
 ### 移除
 
 - 移除对SDK环境变量ANDROID_12的依赖。
+
+
 
 ## 1.9.3 （2023-06-28）
 

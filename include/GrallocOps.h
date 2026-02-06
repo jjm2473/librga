@@ -45,13 +45,15 @@
 #include <utils/Log.h>
 #include <log/log_main.h>
 
-#include "drmrga.h"
+#include <cutils/native_handle.h>
 #include "rga.h"
+
+typedef std::vector<int> rga_gralloc_attr_t;
 
 // -------------------------------------------------------------------------------
 int         RkRgaGetHandleFd(buffer_handle_t handle, int *fd);
 int         RkRgaGetHandleAttributes(buffer_handle_t handle,
-                                     std::vector<int> *attrs);
+                                     rga_gralloc_attr_t *attrs);
 int         RkRgaGetHandleMapAddress(buffer_handle_t handle,
                                      void **buf);
 #endif  //Android

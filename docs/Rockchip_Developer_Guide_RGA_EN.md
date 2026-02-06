@@ -2,9 +2,9 @@
 
 ID: RK-KF-YF-403
 
-Release Version: V2.2.2
+Release Version: V2.2.8
 
-Release Date: 2023-06-28
+Release Date: 2025-06-10
 
 Security Level: □Top-Secret   □Secret   □Internal   ■Public
 
@@ -52,7 +52,13 @@ This document (this guide) is mainly intended for:
 | 2022/01/20 | 2.1.1 | Chen Cheng, Li Huang, Yu Qiaowei | Supplemental formatting support/alignment instructions. |
 | 2022/09/15 | 2.2.0 | Chen Cheng, Li Huang, Yu Qiaowei | - Supplementary default value description<br/>- New array api<br/>- New task api<br/>- New rectangle border drawing api |
 | 2023/02/09 | 2.2.1 | Yu Qiaowei | Format document. |
-| 2022/06/28 | 2.2.2 | Yu Qiaowei | - Add chip RK3562 introduction<br/>- Improve the precautions for grayscale images |
+| 2023/06/28 | 2.2.2 | Yu Qiaowei | - Add chip RK3562 introduction<br/>- Improve the precautions for grayscale images |
+| 2024/03/06 | 2.2.3 | Yu Qiaowei | Add chip RK3576 introduction |
+| 2024/08/22 | 2.2.4 | Yu Qiaowei | Add chip RK3506、RV1103B introduction |
+| 2024/11/18 | 2.2.5 | Yu Qiaowei | Add the support status of APIs in different environments. |
+| 2025/03/27 | 2.2.6 | Yu Qiaowei | Add chip RV1126B introduction |
+| 2025/04/30 | 2.2.7 | Yu Qiaowei | Fixed over-constraints on actual_height in the description of RK3506/RV1103B |
+| 2025/06/10 | 2.2.8 | Yu Qiaowei | - Add chip RK1820 introduction<br />- Remove chip codename |
 
 ---
 
@@ -73,7 +79,6 @@ RGA (Raster Graphic Acceleration Unit) is an independent 2D hardware accelerator
 <table>
    <tr>
       <td rowspan="2">Version</td>
-      <td rowspan="2">Codename</td>
       <td rowspan="2">Chip</td>
       <td rowspan="1" colspan="2">Source</td>
       <td rowspan="1" colspan="2">Destination</td>
@@ -88,7 +93,6 @@ RGA (Raster Graphic Acceleration Unit) is an independent 2D hardware accelerator
    </tr>
    <tr>
       <td rowspan="4">RGA1</td>
-      <td>Pagani</td>
       <td>RK3066</td>
       <td rowspan="4">2x2</td>
       <td rowspan="4">8192x8192</td>
@@ -98,20 +102,16 @@ RGA (Raster Graphic Acceleration Unit) is an independent 2D hardware accelerator
       <td rowspan="4">1</td>
    </tr>
    <tr>
-      <td>Jaguar Plus</td>
       <td>RK3188</td>
    </tr>
    <tr>
-      <td>Beetles</td>
       <td>RK2926/2928</td>
    </tr>
    <tr>
-      <td>Beetles Plus</td>
       <td>RK3026/3028</td>
    </tr>
    <tr>
       <td rowspan="2">RGA1_plus</td>
-      <td>Audi</td>
       <td>RK3128</td>
       <td rowspan="2">2x2</td>
       <td rowspan="2">8192x8192</td>
@@ -121,123 +121,138 @@ RGA (Raster Graphic Acceleration Unit) is an independent 2D hardware accelerator
       <td rowspan="2">1</td>
    </tr>
    <tr>
-      <td>Granite</td>
       <td>Sofia 3gr</td>
    </tr>
    <tr>
       <td rowspan="2">RGA2</td>
-      <td>Lincoln</td>
       <td>RK3288/3288w</td>
       <td rowspan="2">2x2</td>
       <td rowspan="2">8192x8192</td>
       <td rowspan="2">2x2</td>
       <td rowspan="2">4096x4096</td>
-      <td rowspan="2">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/16~16 scale<br/>Alpha blend<br/>Color key<br/>Color fill<br/>Color palette<br/>ROP<br/>IOMMU(32bit)</td>
+      <td rowspan="2">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/16~16 scale<br/>scale-up(bi-linear/bi-cubic)<br/>scale-down(average)<br/>Alpha blend<br/>Color key<br/>Color fill<br/>Color palette<br/>ROP<br/>IOMMU(32bit)</td>
       <td rowspan="2">2</td>
    </tr>
    <tr>
-      <td>Capricorn</td>
       <td>RK3190</td>
    </tr>
    <tr>
       <td rowspan="2">RGA2-Lite0</td>
-      <td>Maybach</td>
       <td>RK3368</td>
       <td rowspan="2">2x2</td>
       <td rowspan="2">8192x8192</td>
       <td rowspan="2">2x2</td>
       <td rowspan="2">4096x4096</td>
-      <td rowspan="2">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/8~8 scale<br/>Alpha blend<br/>Color key<br/>Color fill<br/>Color palette<br/>ROP<br/>IOMMU(32bit)</td>
+      <td rowspan="2">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/8~8 scale<br/>scale-up(bi-linear/bi-cubic)<br/>scale-down(average)<br/>Alpha blend<br/>Color key<br/>Color fill<br/>Color palette<br/>ROP<br/>IOMMU(32bit)</td>
       <td rowspan="2">2</td>
    </tr>
    <tr>
-      <td>BMW</td>
       <td>RK3366</td>
    </tr>
    <tr>
       <td rowspan="4">RGA2-Lite1</td>
-      <td>Benz</td>
       <td>RK3228</td>
       <td rowspan="4">2x2</td>
       <td rowspan="4">8192x8192</td>
       <td rowspan="4">2x2</td>
       <td rowspan="4">4096x4096</td>
-      <td rowspan="4">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/8~8 scale<br/>Alpha blend<br/>Color key<br/>Color fill<br/>Color palette<br/>IOMMU(32bit)</td>
+      <td rowspan="4">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/8~8 scale<br/>scale-up(bi-linear/bi-cubic)<br/>scale-down(average)<br/>Alpha blend<br/>Color key<br/>Color fill<br/>Color palette<br/>IOMMU(32bit)</td>
       <td rowspan="4">2</td>
    </tr>
    <tr>
-      <td>Infiniti</td>
       <td>RK3228H</td>
    </tr>
    <tr>
-      <td>Gemini</td>
       <td>RK3326</td>
    </tr>
    <tr>
-      <td>Lion</td>
       <td>RK1808</td>
    </tr>
    <tr>
+      <td rowspan="1">RGA2-Lite2</td>
+      <td>RK3506</td>
+      <td rowspan="1">2x2</td>
+      <td rowspan="1">1280x8192</td>
+      <td rowspan="1">2x2</td>
+      <td rowspan="1">1280x4096</td>
+      <td rowspan="1">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/16~16 scale<br/>scale-up(bi-linear/bi-cubic)<br/>scale-down(average)<br/>Alpha blend<br/>Color key<br/>Color fill<br/>Color palette<br/>Guassion blur<br/>alpha-8bit</td>
+      <td rowspan="1">2</td>
+   </tr>
+   <tr>
+      <td rowspan="1">RGA2-Lite3</td>
+      <td>RK1103B</td>
+      <td rowspan="1">2x2</td>
+      <td rowspan="1">2880x8192</td>
+      <td rowspan="1">2x2</td>
+      <td rowspan="1">2880x8192</td>
+      <td rowspan="1">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/16~16 scale<br/>scale-up(bi-linear)<br/>scale-down(bi-linear/average)<br/>Color fill</td>
+      <td rowspan="1">2</td>
+   </tr>
+   <tr>
       <td rowspan="8">RGA2-Enhance</td>
-      <td>Mclaren</td>
       <td>RK3399</td>
       <td rowspan="8">2x2</td>
       <td rowspan="8">8192x8192</td>
       <td rowspan="8">2x2</td>
       <td rowspan="8">4096x4096</td>
-      <td rowspan="8">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/16~16 scale<br/>Alpha blend<br/>Color key<br/>Color fill<br/>Color palette<br/>ROP(NA for RV1108/RV1109/RK3566)<br/>NN quantize(NA for RK3399/RV1108)<br/>osd (only RV1106/RV1103/RK3562/RK3528)<br/>mosaic(only RV1106/RV1103/RK3562/RK3528)<br/>IOMMU(32bit, RK3528/RK3562为40bit，NA for RV1106/1103)</td>
+      <td rowspan="8">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/16~16 scale<br/>scale-up(bi-linear/bi-cubic)<br/>scale-down(average)<br/>Alpha blend<br/>Color key<br/>Color fill<br/>Color palette<br/>ROP(NA for RV1108/RV1109/RK3566)<br/>NN quantize(NA for RK3399/RV1108)<br/>osd (only RV1106/RV1103/RK3562/RK3528)<br/>mosaic(only RV1106/RV1103/RK3562/RK3528)<br/>IOMMU(32bit, RK3528/RK3562为40bit，NA for RV1106/1103)</td>
       <td rowspan="8">2</td>
    </tr>
    <tr>
-      <td>Mercury</td>
       <td>RK1108</td>
    </tr>
    <tr>
-      <td>Puma</td>
       <td>RV1126/RV1109</td>
    </tr>
    <tr>
-      <td>skylarkV2</td>
       <td>RK3566/RK3568</td>
    </tr>
    <tr>
-      <td>Orion</td>
       <td>RK3588</td>
    </tr>
    <tr>
-      <td>Otter</td>
       <td>RV1106/1103</td>
    </tr>
    <tr>
-      <td>Bull</td>
-      <td>RK3528</td>
+       <td>RK3528</td>
+    </tr>
+   <tr>
+       <td>RK3562</td>
+    </tr>
+    <tr>
+      <td rowspan="3">RGA2-Pro</td>
+      <td>RK3576</td>
+      <td rowspan="3">2x2</td>
+      <td rowspan="3">8192x8192</td>
+      <td rowspan="3">2x2</td>
+      <td rowspan="3">8192x8192</td>
+      <td rowspan="3">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/16~16 scale<br/>scale-up(bi-linear/bi-cubic)<br/>scale-down(bi-linear/average)<br/>Alpha blend<br/>Color key<br/>Color fill<br/>Color palette<br/>ROP<br/>osd<br/>mosaic(only RK3576)<br/>ARGB5551 alpha bit map<br/>rkfbc64x4 input(only RK3576)<br/>afbc32x8 input(split mode, only RK3576)<br/>tile4x4(RV1126B only input)<br/>IOMMU(40bit)</td>
+      <td rowspan="3">2</td>
    </tr>
    <tr>
-      <td>Snipe</td>
-      <td>RK3562</td>
+      <td>RV1126B</td>
+   </tr>
+   <tr>
+      <td>RK1820</td>
    </tr>
    <tr>
       <td rowspan="1">RGA3</td>
-      <td>Orion</td>
       <td>RK3588</td>
       <td rowspan="1">68x2</td>
       <td rowspan="1">8176x8176</td>
       <td rowspan="1">68x2</td>
       <td rowspan="1">8128x8128</td>
-      <td rowspan="4">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/8~8 scale<br/>Alpha blend<br/>Color key<br/>FBC<br/>IOMMU(40bit)</td>
+      <td rowspan="4">90/180/270 Rotate<br/>X/Y Mirror<br/>Crop<br/>1/8~8 scale<br/>scale-up(bi-cubic)<br/>scale-down(average)<br/>Alpha blend<br/>Color key<br/>afbc16x16<br/>IOMMU(40bit)</td>
       <td rowspan="1">3 (by pass)<br/>2 (scale)</td>
    </tr>
 </table>
-
 
 
 > Note:
 >
 > 1). The capabilities of Pixels/cycle are theoretical data, and the actual operating performance is related to bandwidth, hardware frequency, etc. The list data is for reference only.
 >
-> 2). In addition to the minimum input resolution limit, the x, y, width, and height parameters of the actual operation rectangle that can be set for each channel must be greater than or equal to 2.
->
-> 3). The addressing capability of RGA is related to the number of bits of IOMMU. For example, the actual physical addressing capability of RGA equipped with 32bit IOMMU only supports 0~4G memory space.
+> 2). The addressing capability of RGA is related to the number of bits of IOMMU. For example, the actual physical addressing capability of RGA equipped with 32bit IOMMU only supports 0~4G memory space.
 
 
 
@@ -250,154 +265,163 @@ RGA (Raster Graphic Acceleration Unit) is an independent 2D hardware accelerator
 <table>
    <tr>
       <td>Version</td>
-      <td>Codename</td>
       <td>Chip</td>
       <td>Input Data Format</td>
       <td>Output Data Format</td>
    </tr>
    <tr>
       <td rowspan="4">RGA1</td>
-      <td>Pagani</td>
       <td>RK3066</td>
-      <td rowspan="4"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P<br/>RK_FORMAT_BPP1<br/>RK_FORMAT_BPP2<br/>RK_FORMAT_BPP4<br/>RK_FORMAT_BPP8
+      <td rowspan="4"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/><br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_BPP1<br/>RK_FORMAT_BPP2<br/>RK_FORMAT_BPP4<br/>RK_FORMAT_BPP8
       </td>
       <td rowspan="4">
-RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP (only for Blur/sharpness)<br/>RK_FORMAT_YCrCbr_420_SP (only for Blur/sharpness)<br/>RK_FORMAT_YCbCr_422_SP (only for Blur/sharpness)<br/>RK_FORMAT_YCrCbr_422_SP (only for Blur/sharpness)<br/>RK_FORMAT_YCbCr_420_P (only for Blur/sharpness)<br/>RK_FORMAT_YCrCbr_420_P (only for Blur/sharpness)<br/>RK_FORMAT_YCbCr_422_P (only for Blur/sharpness)<br/>RK_FORMAT_YCrCbr_422_P (only for Blur/sharpness)
+RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP (only for Blur/sharpness)<br/>RK_FORMAT_YCrCb_420_SP (only for Blur/sharpness)<br/>RK_FORMAT_YCbCr_422_SP (only for Blur/sharpness)<br/>RK_FORMAT_YCrCb_422_SP (only for Blur/sharpness)<br/>RK_FORMAT_YCbCr_420_P (only for Blur/sharpness)<br/>RK_FORMAT_YCrCb_420_P (only for Blur/sharpness)<br/>RK_FORMAT_YCbCr_422_P (only for Blur/sharpness)<br/>RK_FORMAT_YCrCb_422_P (only for Blur/sharpness)
       </td>
    </tr>
    <tr>
-      <td>Jaguar Plus</td>
       <td>RK3188</td>
    </tr>
    <tr>
-      <td>Beetles</td>
       <td>RK2926/2928</td>
    </tr>
    <tr>
-      <td>Beetles Plus</td>
       <td>RK3026/3028</td>
    </tr>
    <tr>
       <td rowspan="2">RGA1_plus</td>
-      <td>Audi</td>
       <td>RK3128</td>
-      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P<br/>RK_FORMAT_BPP1<br/>RK_FORMAT_BPP2<br/>RK_FORMAT_BPP4<br/>RK_FORMAT_BPP8
+      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_BPP1<br/>RK_FORMAT_BPP2<br/>RK_FORMAT_BPP4<br/>RK_FORMAT_BPP8
       </td>
       <td rowspan="2">
-RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCrCbr_420_SP (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCbCr_422_SP (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCrCbr_422_SP (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCbCr_420_P (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCrCbr_420_P (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCbCr_422_P (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCrCbr_422_P (only for normal Bitblt without alpha)
+RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCrCb_420_SP (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCbCr_422_SP (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCrCb_422_SP (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCbCr_420_P (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCrCb_420_P (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCbCr_422_P (only for normal Bitblt without alpha)<br/>RK_FORMAT_YCrCb_422_P (only for normal Bitblt without alpha)
       </td>
    </tr>
    <tr>
-      <td>Granite</td>
       <td>Sofia 3gr</td>
    </tr>
    <tr>
       <td rowspan="2">RGA2</td>
-      <td>Lincoln</td>
       <td>RK3288/3288w</td>
-      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
+      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
       </td>
-      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P
+      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P
       </td>
    </tr>
    <tr>
-      <td>Capricorn</td>
       <td>RK3190</td>
    </tr>
    <tr>
       <td rowspan="2">RGA2-Lite0</td>
-      <td>Maybach</td>
       <td>RK3368</td>
-      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
+      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
       </td>
-      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P
+      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P
       </td>
    </tr>
    <tr>
-      <td>BMW</td>
       <td>RK3366</td>
    </tr>
    <tr>
       <td rowspan="4">RGA2-Lite1</td>
-      <td>Benz</td>
       <td>RK3228</td>
-      <td rowspan="4"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
+      <td rowspan="4"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
       </td>
-      <td rowspan="4"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P
+      <td rowspan="4"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P
       </td>
    </tr>
    <tr>
-      <td>Infiniti</td>
       <td>RK3228H</td>
    </tr>
    <tr>
-      <td>Gemini</td>
       <td>RK3326</td>
    </tr>
    <tr>
-      <td>Lion</td>
       <td>RK1808</td>
    </tr>
    <tr>
-      <td rowspan="8">RGA2-Enhance</td>
-      <td>Mclaren</td>
-      <td>RK3399</td>
-      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
+      <td rowspan="1">RGA2-Lite2</td>
+      <td>RK3506</td>
+      <td rowspan="1"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_400<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B<br/>RK_FORMAT_A8<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
       </td>
-      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YUYV_420<br/>RK_FORMAT_YVYU_420<br/>RK_FORMAT_UYVY_420<br/>RK_FORMAT_VYUY_420
-      </td>
-   </tr>
-   <tr>
-      <td>Mercury</td>
-      <td>RK1108</td>
-   </tr>
-   <tr>
-      <td>Puma</td>
-      <td>RV1126/ RV1109</td>
-      <td rowspan="6"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_400<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
-      </td>
-      <td rowspan="6">
-RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGBA_4444<br/>RK_FORMAT_BGRA_4444<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_RGBA_5551<br/>RK_FORMAT_BGRA_5551<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YUYV_420<br/>RK_FORMAT_YVYU_420<br/>RK_FORMAT_UYVY_420<br/>RK_FORMAT_VYUY_420<br/>RK_FORMAT_YCbCr_400<br/>RK_FORMAT_Y4
+      <td rowspan="1">
+RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_400<br/>RK_FORMAT_Y4
    	  </td>
    </tr>
    <tr>
-      <td>skylarkV2</td>
+      <td rowspan="1">RGA2-Lite2</td>
+      <td>RV1103B</td>
+      <td rowspan="1"> RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_400
+      </td>
+      <td rowspan="1">
+RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_400
+   	  </td>
+   </tr>
+   <tr>
+      <td rowspan="8">RGA2-Enhance</td>
+      <td>RK3399</td>
+      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
+      </td>
+      <td rowspan="2"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422
+      </td>
+   </tr>
+   <tr>
+      <td>RK1108</td>
+   </tr>
+   <tr>
+      <td>RV1126/ RV1109</td>
+      <td rowspan="6"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_400<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
+      </td>
+      <td rowspan="6">
+RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_400<br/>RK_FORMAT_Y4
+   	  </td>
+   </tr>
+   <tr>
       <td>RK3566/RK3568</td>
    </tr>
    <tr>
-   <td>Orion</td>
       <td>RK3588</td>
    </tr>
    <tr>
-   <td>Otter</td>
       <td>RV1106/1103</td>
    </tr>
-   <td>Bull</td>
+   <tr>
       <td>RK3528</td>
    </tr>
-   <td>Snipe</td>
+   <tr>
       <td>RK3562</td>
    </tr>
    <tr>
+      <td rowspan="3">RGA2-Pro</td>
+      <td>RK3576</td>
+      <td rowspan="3"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_444_SP<br/>RK_FORMAT_YCrCb_444_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_400<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B<br/>RK_FORMA_A8 (only src for alpha blend)<br/>RK_FORMAT_BPP1 (only for color palette)<br/>RK_FORMAT_BPP2 (only for color palette)<br/>RK_FORMAT_BPP4 (only for color palette)<br/>RK_FORMAT_BPP8 (only for color palette)
+      </td>
+      <td rowspan="3"> RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_ARGB_4444<br/>RK_FORMAT_ABGR_4444<br/>RK_FORMAT_ARGB_5551<br/>RK_FORMAT_ABGR_5551<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_444_SP<br/>RK_FORMAT_YCrCb_444_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_400<br/>RK_FORMAT_Y4 (only RK3576)<br/>RK_FORMAT_Y8 (only RK3576)
+      </td>
+   </tr>
+   <tr>
+      <td>RV1126B</td>
+   </tr>
+   <tr>
+      <td>RK1820</td>
+   </tr>
+   <tr>
       <td rowspan="1">RGA3</td>
-      <td>Orion</td>
       <td>RK3588</td>
       <td rowspan="1">
-RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B
+RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B
       </td>
       <td rowspan="1">
-RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B
+RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_RGB_565<br/>RK_FORMAT_BGR_565<br>RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_VYUY_422<br/>RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B
       </td>
    </tr>
 </table>
-
 
 
 > Note:
 >
 > 1). The "RK_FORMAT_YCbCr_400" format means that the YUV format only takes the Y channel, and is often used in 256 (2 to the 8th power) grayscale images. Here, it should be noted that since the YUV format exists in the RGB/YUV color space conversion, you need to pay attention to the color space configuration , for example, a full 256-level grayscale image needs to be configured as full range during conversion.
 >
-> 2). The "RK_FORMAT_Y4" format means that the YUV format only takes the Y channel and dithers to 4 bits. It is often used in 16 (2 to the 4th power) grayscale images. The precautions involved in the configuration of the color space conversion are the same as “RK_FORMAT_YCbCr_400”.
+> 2). The "RK_FORMAT_Y4" format means that the YUV format only takes the Y channel and dithers to 4 bits. It is often used in 16 (2 to the 4th power) grayscale images. The precautions involved in the configuration of the color space conversion are the same as “RK_FORMAT_YCbCr_400”. "RK_FORMAT_Y8" is similar to "RK_FORMAT_Y4", also only 4 bits are valid, the difference is that only the high 4 bits are valid data, the low 4 bits are invalid data.
 
 
 
@@ -411,7 +435,7 @@ RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMA
         <td>Alignment</td>
     </tr>
 	<tr>
-        <td rowspan="4">RGA1<br/>RGA1_Plus</td>
+        <td rowspan="4">RGA1<br/>RGA1-Plus</td>
         <td rowspan="4">4</td>
         <td>
 RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888
@@ -432,12 +456,12 @@ RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888
     </tr>
     <tr>
         <td>
-RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P
+RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P
         </td>
         <td>width stride must be 4-aligned，x_offset、y_offset、width、height、height stride must be 2-aligned</td>
     </tr>
     <tr>
-        <td rowspan="6">RGA2<br/>RGA2_Lite0<br/>RGA2_Lite1<br/>RGA2_Enhance</td>
+        <td rowspan="6">RGA2<br/>RGA2-Lite0<br/>RGA2-Lite1<br/><br/>RGA2-Lite2<br/>RGA2-Lite3<br/>RGA2-Enhance<br/>RGA2-Pro</td>
         <td rowspan="6">4</td>
         <td>
 RK_FORMAT_RGBA_8888<br/>RK_FORMAT_BGRA_8888<br/>RK_FORMAT_ARGB_8888<br/>RK_FORMAT_ABGR_8888<br/>RK_FORMAT_RGBX_8888<br/>RK_FORMAT_BGRX_8888<br/>RK_FORMAT_XRGB_8888<br/>RK_FORMAT_XBGR_8888
@@ -458,13 +482,13 @@ RK_FORMAT_YUYV_422<br/>RK_FORMAT_YVYU_422<br/>RK_FORMAT_UYVY_422<br/>RK_FORMAT_V
     </tr>
     <tr>
         <td>
-RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888
+RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888<br/>RK_FORMAT_A8
         </td>
         <td>width stride must be 4-aligned</td>
     </tr>
     <tr>
         <td>
-RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCbr_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCbr_422_P<br/>RK_FORMAT_YCbCr_400<br/>RK_FORMAT_Y4
+RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP<br/>RK_FORMAT_YCbCr_444_SP<br/>RK_FORMAT_YCrCb_444_SP<br/>RK_FORMAT_YCbCr_420_P<br/>RK_FORMAT_YCrCb_420_P<br/>RK_FORMAT_YCbCr_422_P<br/>RK_FORMAT_YCrCb_422_P<br/>RK_FORMAT_YCbCr_400<br/>RK_FORMAT_Y4<br/>RK_FORMAT_Y8
         </td>
         <td>width stride must be 4-aligned，x_offset、y_offset、width、height、height stride must be 2-aligned</td>
     </tr>
@@ -472,7 +496,7 @@ RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br
         <td>
 RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B
         </td>
-        <td>width stride must be 16-aligned，x_offset、y_offset、width、height、height stride must be 2-aligned</td>
+        <td>width stride must be 16-aligned，x_offset、y_offset must be 64-aligned，width、height、height stride must be 2-aligned</td>
     </tr>
 	<tr>
 		<td rowspan="8">RGA3</td>
@@ -502,7 +526,7 @@ RK_FORMAT_RGB_888<br/>RK_FORMAT_BGR_888
     </tr>
 	<tr>
         <td>
-RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCbr_422_SP
+RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCb_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br/>RK_FORMAT_YCrCb_422_SP
         </td>
         <td>width stride must be 16-aligned，x_offset、y_offset、width、height、height stride must be 2-aligned</td>
 	</tr>
@@ -510,7 +534,7 @@ RK_FORMAT_YCbCr_420_SP<br/>RK_FORMAT_YCrCbr_420_SP<br/>RK_FORMAT_YCbCr_422_SP<br
         <td>
 RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_422_SP_10B<br/>RK_FORMAT_YCrCb_422_SP_10B
         </td>
-        <td>width stride must be 64-aligned，x_offset、y_offset、width、height、height stride must be 2-aligned</td>
+        <td>width stride must be 64-aligned，x_offset、y_offset must be 4-aligned，width、height、height stride must be 2-aligned</td>
     </tr>
     <tr>
         <td>FBC mode</td>
@@ -521,7 +545,6 @@ RK_FORMAT_YCbCr_420_SP_10B<br/>RK_FORMAT_YCrCb_420_SP_10B<br/>RK_FORMAT_YCbCr_42
         <td>In addition to the format alignment requirements above，width、height must be 8-aligned，input channel width stride、height stride must be 16-aligned。</td>
     </tr>
 </table>
-
 
 > Note:
 >
@@ -787,6 +810,558 @@ The software support library provides the following API, asynchronous mode only 
 - **imsync**： Synchronize task completion status in asynchronous mode.
 - **imconfig**： Add default configuration to current thread context.
 
+Support status of each API in different environments:
+
+<table><thead>
+  <tr>
+    <th>Item</th>
+    <th>API</th>
+    <th>Language</th>
+    <th>System</th>
+    <th>librga</th>
+    <th>RGA2 driver</th>
+    <th>Multi_RGA driver</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td rowspan="6">common API</td>
+    <td>querystring</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td>imcheckHeader</td>
+    <td>C++</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>≥1.9.0</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td>imcheck</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imStrError</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td>imsync</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.6.0</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imconfig</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.6.0</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td rowspan="8">buffer API</td>
+    <td>importbuffer_virtualaddr</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.7.2</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>importbuffer_physicaladdr</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.7.2</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>importbuffer_fd</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.7.2</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>releasebuffer_handle</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.7.2</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>wrapbuffer_handle</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.7.2</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td>wrapbuffer_virtualaddr</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td>wrapbuffer_physicaladdr</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td>wrapbuffer_fd</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td rowspan="22">single process API</td>
+    <td>imcopy</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imresize</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>impyramind</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imcrop</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imtranslate</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imcvtcolor</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imrotate</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imflip</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imblend</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imcomposite</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imcolorkey</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imosd</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>≥1.8.0</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imquantize</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imrop</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imfill</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imfillArray</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imrectangle</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>imrectangleArray</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>immakeBorder</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>immosaic</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>≥1.8.0</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>immosaicArray</td>
+    <td>C++/C</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td>improcess</td>
+    <td>C++/C</td>
+    <td>Android / Linux / QNX / RT-thread</td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+  </tr>
+  <tr>
+    <td rowspan="24">task process API</td>
+    <td>imbeginJob</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imendJob</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imcancelJob</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imcopyTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imresizeTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imcropTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imtranslateTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imcvtcolorTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imrotateTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imflipTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imblendTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imcompositeTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imcolorkeyTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imosdTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imquantizeTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imropTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imfillTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imfillTaskArray</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imrectangleTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>imrectangleTaskArray</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>immosaicTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>immosaicTaskArray</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>immosaicTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td>improcessTask</td>
+    <td>C++</td>
+    <td>Android / Linux</td>
+    <td>≥1.9.0</td>
+    <td>×</td>
+    <td>≥1.2.25</td>
+  </tr>
+  <tr>
+    <td rowspan="6">expand API</td>
+    <td>importbuffer_GraphicBuffer</td>
+    <td>C++</td>
+    <td>Android</td>
+    <td>√</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td>importbuffer_GraphicBuffer_handle</td>
+    <td>C++</td>
+    <td>Android</td>
+    <td>√</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td>importbuffer_AHardwareBuffer</td>
+    <td>C++</td>
+    <td>Android</td>
+    <td>√</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td>wrapbuffer_GraphicBuffer</td>
+    <td>C++</td>
+    <td>Android</td>
+    <td>√</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td>wrapbuffer_handle（GraphicBuffer handle）</td>
+    <td>C++</td>
+    <td>Android</td>
+    <td>√</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+  <tr>
+    <td>wrapbuffer_AHardwareBuffer</td>
+    <td>C++</td>
+    <td>Android</td>
+    <td>√</td>
+    <td>/</td>
+    <td>/</td>
+  </tr>
+</tbody></table>
+
+> Note:
+>
+> (√): Supported, (×): Not supported, (/): Not applicable.
+
 
 
 ### Obtain RGA Version and Support Information
@@ -1046,14 +1621,14 @@ imresize(const rga_buffer_t src,
          rga_buffer_t dst,
          double fx = 0,
          double fy = 0,
-         int interpolation = INTER_LINEAR,
+         int interpolation = IM_INTERP_DEFAULT,
          int sync = 1,
          int *release_fence_fd = NULL);
 ```
 
 > According to different scenario, you can choose to configure dst to describe the output image size of resizing, or configure the scale factor fx/fy to resize at a specified ratio. When dst and fx/fy are configured at the same time, the calculated result of fx/fy is used as the output image size.
 >
-> Only hardware version RGA1/RGA1 plus supports interpolation configuration.
+> Interpolation support varies depending on the hardware. You can configure it according to the different hardware support algorithms described in the ”Design Index“ section.
 >
 > Note: When resizing with fx/fy, format such as YUV that requires width and height alignment will force downward alignment to meet the requirements. Using this feature may affect the expected resizing effect.
 
@@ -1063,7 +1638,7 @@ imresize(const rga_buffer_t src,
 | dst              | **[required]** output image; it has the size dsize (when it is non-zero) or the size computed from src.size(), fx, and fy; the type of dst is the same as of src. |
 | fx               | **[optional]** scale factor along the horizontal axis; when it equals 0, it is computed as:<br/>fx = (double) dst.width / src.width |
 | fy               | **[optional]** scale factor along the vertical axis; when it equals 0, it is computed as:<br/>fy = (double) dst.height / src.height |
-| interpolation    | **[optional]** interpolation method:<br/>INTER_NEAREST - a nearest-neighbor interpolation<br/>INTER_LINEAR - a bilinear interpolation (used by default)<br/>INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood |
+| interpolation    | **[optional]** interpolation method:<br/>IM_INTERP_DEFAULT<br/>IM_INTERP_LINEAR<br/>IM_INTERP_CUBIC<br/>IM_INTERP_AVERAGE |
 | sync             | **[optional]** wait until operation complete                 |
 | release_fence_fd | **[optional]**Used in async mode, as a parameter of imsync() |
 
@@ -1112,7 +1687,7 @@ IM_API IM_STATUS imresizeTask(im_job_handle_t job_handle,
 | dst           | **[required]** output image; it has the size dsize (when it is non-zero) or the size computed from src.size(), fx, and fy; the type of dst is the same as of src. |
 | fx            | **[optional]** scale factor along the horizontal axis; when it equals 0, it is computed as:<br/>fx = (double) dst.width / src.width |
 | fy            | **[optional]** scale factor along the vertical axis; when it equals 0, it is computed as:<br/>fy = (double) dst.height / src.height |
-| interpolation | **[optional]** interpolation method:<br/>INTER_NEAREST - a nearest-neighbor interpolation<br/>INTER_LINEAR - a bilinear interpolation (used by default)<br/>INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood |
+| interpolation | **[optional]** interpolation method:<br/>IM_INTERP_DEFAULT<br/>IM_INTERP_LINEAR<br/>IM_INTERP_CUBIC<br/>IM_INTERP_AVERAGE |
 
 **Return** IM_STATUS_SUCCESS on success or else negative error code.
 
@@ -1847,7 +2422,7 @@ IM_API IM_STATUS imrectangle(rga_buffer_t dst,
 >
 > Color parameters from high to low are respectively R，G，B，A. For example, red: color = 0xff000000.
 
-【 Note 】 The width and height of the rect must be greater than or equal to 2
+【 Note 】 The width and height of the rect must be greater than or equal to 2, when thickness is not negative, it must be greater than or equal to 2
 
 | Parameter        | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
@@ -1878,7 +2453,7 @@ IM_API IM_STATUS imrectangleArray(rga_buffer_t dst,
 >
 > Color parameters from high to low are respectively R，G，B，A. For example, red: color = 0xff000000.
 
-【 Note 】 The width and height of the rect must be greater than or equal to 2
+【 Note 】 The width and height of the rect must be greater than or equal to 2, when thickness is not negative, it must be greater than or equal to 2
 
 | Parameter        | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
@@ -1906,7 +2481,7 @@ IM_API IM_STATUS imrectangleTask(im_job_handle_t job_handle,
 
 > Add an Draw border operation to the specified job through job_handle. The configuration parameters are the same as imrectangle.
 
-【 Note 】 The width and height of the rect must be greater than or equal to 2
+【 Note 】 The width and height of the rect must be greater than or equal to 2, when thickness is not negative, it must be greater than or equal to 2
 
 | Parameter  | Description                                                  |
 | ---------- | ------------------------------------------------------------ |
@@ -1933,7 +2508,7 @@ IM_API IM_STATUS imrectangleTaskArray(im_job_handle_t job_handle,
 
 > Add an Draw multiple border operation to the specified job through job_handle. The configuration parameters are the same as imrectangleArray.
 
-【 Note 】 The width and height of the rect must be greater than or equal to 2
+【 Note 】 The width and height of the rect must be greater than or equal to 2, when thickness is not negative, it must be greater than or equal to 2
 
 | Parameter  | Description                                                  |
 | ---------- | ------------------------------------------------------------ |
@@ -1966,7 +2541,7 @@ IM_API IM_STATUS immakeBorder(rga_buffer_t src,
 
 > According to the configured top/bottom/left/right pixels, draw a border to the input image and output it to the output target image buffer.
 
-【 Note 】 The width and height of the rect must be greater than or equal to 2
+【 Note 】 The width and height of the rect must be greater than or equal to 2, top/bottom must be less than or equal to the actual height of source image, and left/right must be less than or equal to the actual width of source image
 
 | Parameter        | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |

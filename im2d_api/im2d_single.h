@@ -50,7 +50,7 @@ IM_API IM_STATUS imcopy(const rga_buffer_t src, rga_buffer_t dst, int sync = 1, 
  * @param fy
  *      X-direction resize factor.
  * @param interpolation
- *      Interpolation formula(Only RGA1 support).
+ *      Interpolation formula.
  * @param sync
  *      When 'sync == 1', wait for the operation to complete and return, otherwise return directly.
  * @param release_fence_fd
@@ -58,7 +58,7 @@ IM_API IM_STATUS imcopy(const rga_buffer_t src, rga_buffer_t dst, int sync = 1, 
  *
  * @returns success or else negative error code.
  */
-IM_API IM_STATUS imresize(const rga_buffer_t src, rga_buffer_t dst, double fx = 0, double fy = 0, int interpolation = 0, int sync = 1, int *release_fence_fd = NULL);
+IM_API IM_STATUS imresize(const rga_buffer_t src, rga_buffer_t dst, double fx = 0, double fy = 0, int interpolation = IM_INTERP_DEFAULT, int sync = 1, int *release_fence_fd = NULL);
 
 /**
  * Crop
@@ -402,6 +402,37 @@ IM_API IM_STATUS immosaic(const rga_buffer_t image, im_rect rect, int mosaic_mod
 IM_API IM_STATUS immosaicArray(const rga_buffer_t image, im_rect *rect_array, int array_size, int mosaic_mode, int sync = 1, int *release_fence_fd = NULL);
 
 /**
+ * Gaussian blur
+ *
+ * @param src
+ *      The input source image.
+ * @param dst
+ *      The output destination image.
+ * @param gauss_width
+ *      Gaussian kernel width. The width must be positive and odd.
+ * @param gauss_height
+ *      Gaussian kernel height. The height must be positive and odd.
+ * @param sigma_x
+ *      Gaussian kernel standard deviation in X direction. If sigma_x is zero, it is computed
+ *      from gauss_width as 'sigma = 0.3 * ((gauss_width - 1) * 0.5 - 1) + 0.8'.
+ * @param sigma_y
+ *      Gaussian kernel standard deviation in Y direction. If sigma_y is zero, it is set to
+ *      be equal to sigma_x, if both sigmas are zeros, they are computed from gauss_width
+ *      and gauss_height respectively as
+ *      'sigma = 0.3 * ((gauss_width/gauss_height - 1) * 0.5 - 1) + 0.8'.
+ * @param sync
+ *      When 'sync == 1', wait for the operation to complete and return, otherwise return directly.
+ * @param release_fence_fd
+ *      When 'sync == 0', the fence_fd used to identify the current job state
+ *
+ * @returns success or else negative error code.
+ */
+IM_API IM_STATUS imgaussianBlur(rga_buffer_t src, rga_buffer_t dst,
+                                int gauss_width, int gauss_height,
+                                int sigma_x, int sigma_y = 0,
+                                int sync = 1, int *release_fence_fd = NULL);
+
+/**
  * palette
  *
  * @param src
@@ -463,6 +494,12 @@ IM_API IM_STATUS improcess(rga_buffer_t src, rga_buffer_t dst, rga_buffer_t pat,
  *      Border type.
  * @param value
  *      The pixel value at which the border is filled.
+ * @param sync
+ *      When 'sync == 1', wait for the operation to complete and return, otherwise return directly.
+ * @param acquir_fence_fd
+ *      When 'sync == 0', the fence_fd used to identify the current job producer state.
+ * @param release_fence_fd
+ *      When 'sync == 0', the fence_fd used to identify the current job state.
  *
  * @returns success or else negative error code.
  */
@@ -470,14 +507,25 @@ IM_API IM_STATUS immakeBorder(rga_buffer_t src, rga_buffer_t dst,
                               int top, int bottom, int left, int right,
                               int border_type, int value = 0,
                               int sync = 1, int acquir_fence_fd = -1, int *release_fence_fd = NULL);
-
-#endif /* #ifdef __cplusplus */
+IM_C_API IM_STATUS immakeBorder(rga_buffer_t src, rga_buffer_t dst,
+                                int top, int bottom, int left, int right,
+                                int border_type, int value);
+IM_C_API IM_STATUS immakeBorderAsync(rga_buffer_t src, rga_buffer_t dst,
+                                     int top, int bottom, int left, int right,
+                                     int border_type, int value,
+                                     int sync, int acquir_fence_fd, int *release_fence_fd);
 
 IM_C_API IM_STATUS immosaic(const rga_buffer_t image, im_rect rect, int mosaic_mode, int sync);
 IM_C_API IM_STATUS imosd(const rga_buffer_t osd,const rga_buffer_t dst,
                          const im_rect osd_rect, im_osd_t *osd_config, int sync);
+#endif /* #ifdef __cplusplus */
+
 IM_C_API IM_STATUS improcess(rga_buffer_t src, rga_buffer_t dst, rga_buffer_t pat,
                              im_rect srect, im_rect drect, im_rect prect, int usage);
+IM_C_API IM_STATUS improcessOpt(rga_buffer_t src, rga_buffer_t dst, rga_buffer_t pat,
+                                im_rect srect, im_rect drect, im_rect prect,
+                                int acquire_fence_fd, int *release_fence_fd,
+                                im_opt_t *opt_ptr, int usage);
 
 /* Start: Symbols reserved for compatibility with macro functions */
 IM_C_API IM_STATUS imcopy_t(const rga_buffer_t src, rga_buffer_t dst, int sync);
@@ -493,6 +541,9 @@ IM_C_API IM_STATUS imquantize_t(const rga_buffer_t src, rga_buffer_t dst, im_nn_
 IM_C_API IM_STATUS imrop_t(const rga_buffer_t src, rga_buffer_t dst, int rop_code, int sync);
 IM_C_API IM_STATUS imfill_t(rga_buffer_t dst, im_rect rect, int color, int sync);
 IM_C_API IM_STATUS impalette_t(rga_buffer_t src, rga_buffer_t dst, rga_buffer_t lut, int sync);
+IM_C_API IM_STATUS imgaussianBlur_t(rga_buffer_t src, rga_buffer_t dst,
+                                    int gauss_width, int gauss_height,
+                                    int sigma_x, int sigma_y, int sync);
 /* End: Symbols reserved for compatibility with macro functions */
 
 #ifndef __cplusplus
@@ -544,9 +595,9 @@ IM_C_API IM_STATUS impalette_t(rga_buffer_t src, rga_buffer_t dst, rga_buffer_t 
         double __args[] = {__VA_ARGS__}; \
         int __argc = sizeof(__args)/sizeof(double); \
         if (__argc == 0) { \
-            __ret = imresize_t(src, dst, 0, 0, INTER_LINEAR, 1); \
+            __ret = imresize_t(src, dst, 0, 0, IM_INTERP_DEFAULT, 1); \
         } else if (__argc == 2){ \
-            __ret = imresize_t(src, dst, __args[RGA_GET_MIN(__argc, 0)], __args[RGA_GET_MIN(__argc, 1)], INTER_LINEAR, 1); \
+            __ret = imresize_t(src, dst, __args[RGA_GET_MIN(__argc, 0)], __args[RGA_GET_MIN(__argc, 1)], IM_INTERP_DEFAULT, 1); \
         } else if (__argc == 3){ \
             __ret = imresize_t(src, dst, __args[RGA_GET_MIN(__argc, 0)], __args[RGA_GET_MIN(__argc, 1)], (int)__args[RGA_GET_MIN(__argc, 2)], 1); \
         } else if (__argc == 4){ \
@@ -563,7 +614,7 @@ IM_C_API IM_STATUS impalette_t(rga_buffer_t src, rga_buffer_t dst, rga_buffer_t 
                    dst, \
                    direction == IM_UP_SCALE ? 0.5 : 2, \
                    direction == IM_UP_SCALE ? 0.5 : 2, \
-                   INTER_LINEAR, 1)
+                   IM_INTERP_DEFAULT, 1)
 
 /**
  * format convert
@@ -934,6 +985,49 @@ IM_C_API IM_STATUS impalette_t(rga_buffer_t src, rga_buffer_t dst, rga_buffer_t 
         } \
         __ret; \
     })
+
+/**
+ * Gaussian blur
+ *
+ * @param src
+ *      The input source image.
+ * @param dst
+ *      The output destination image.
+ * @param gauss_width
+ *      Gaussian kernel width. The width must be positive and odd.
+ * @param gauss_height
+ *      Gaussian kernel height. The height must be positive and odd.
+ * @param sigma_x
+ *      Gaussian kernel standard deviation in X direction. If sigma_x is zero, it is computed
+ *      from gauss_width as 'sigma = 0.3 * ((gauss_width - 1) * 0.5 - 1) + 0.8'.
+ * @param sigma_y
+ *      Gaussian kernel standard deviation in Y direction. If sigma_y is zero, it is set to
+ *      be equal to sigma_x, if both sigmas are zeros, they are computed from gauss_width
+ *      and gauss_height respectively as
+ *      'sigma = 0.3 * ((gauss_width/gauss_height - 1) * 0.5 - 1) + 0.8'.
+ * @param sync
+ *      When 'sync == 1', wait for the operation to complete and return, otherwise return directly.
+ *
+ * @returns success or else negative error code.
+ */
+#define imgaussianBlur(src, dst, gauss_width, gauss_height, sigma_x,  ...) \
+    ({ \
+        IM_STATUS __ret = IM_STATUS_SUCCESS; \
+        int __args[] = {__VA_ARGS__}; \
+        int __argc = sizeof(__args)/sizeof(int); \
+        if (__argc == 0) { \
+            __ret = imgaussianBlur_t(src, dst, gauss_width, gauss_height, sigma_x, 0, 1); \
+        } else if (__argc == 1){ \
+            __ret = imgaussianBlur_t(src, dst, gauss_width, gauss_height, sigma_x, (int)__args[RGA_GET_MIN(__argc, 0)], 1); \
+        } else if (__argc == 2){ \
+            __ret = imgaussianBlur_t(src, dst, gauss_width, gauss_height, sigma_x, (int)__args[RGA_GET_MIN(__argc, 0)], (int)__args[RGA_GET_MIN(__argc, 1)]); \
+        } else { \
+            __ret = IM_STATUS_INVALID_PARAM; \
+            printf("invalid parameter\n"); \
+        } \
+        __ret; \
+    })
+
 /* End define IM2D macro API */
 #endif
 

@@ -54,9 +54,8 @@
 #undef LOG_TAG
 #define LOG_TAG "platform_gralloc4"
 #endif
-#define ENABLE_DEBUG_LOG
-#include <custom_log.h>
 
+#include <log/log.h>
 #include <sync/sync.h>
 
 #include <drm_fourcc.h>
@@ -259,7 +258,7 @@ int get_pixel_stride(buffer_handle_t handle, int* pixel_stride)
 
         if ( layouts.size() > 1 )
         {
-            W("it's not reasonable to get global pixel_stride of buffer with planes more than 1.");
+            ALOGW("it's not reasonable to get global pixel_stride of buffer with planes more than 1.");
         }
 
         *pixel_stride = (layouts[0].widthInSamples);
@@ -283,6 +282,24 @@ int get_pixel_stride(buffer_handle_t handle, int* pixel_stride)
         *pixel_stride = byte_stride;
     }
 
+    return err;
+}
+
+int get_height_stride(buffer_handle_t handle, int* height_stride) {
+    auto& mapper = get_service();
+    int err = -1;
+    std::vector<PlaneLayout> layouts;
+    err = get_metadata(mapper, handle, MetadataType_PlaneLayouts, decodePlaneLayouts, &layouts);
+    if (err != android::OK || layouts.size() < 1) {
+        ALOGE("Failed to get plane layouts. err : %d", err);
+        return err;
+    }
+
+    if (layouts.size() > 1) {
+        // W("it's not reasonable to get global pixel_stride of buffer with planes more than 1.");
+    }
+
+    *height_stride = layouts[0].heightInSamples;
     return err;
 }
 
@@ -311,7 +328,7 @@ int get_byte_stride(buffer_handle_t handle, int* byte_stride)
 
         if ( layouts.size() > 1 )
         {
-            W("it's not reasonable to get global byte_stride of buffer with planes more than 1.");
+            ALOGW("it's not reasonable to get global byte_stride of buffer with planes more than 1.");
         }
 
         *byte_stride = (layouts[0].strideInBytes);
@@ -397,6 +414,29 @@ int get_share_fd(buffer_handle_t handle, int* share_fd)
     *share_fd = (int)(fds[0]);
 
     return err;
+}
+
+uint32_t get_fourcc_format(buffer_handle_t handle)
+{
+    auto &mapper = get_service();
+    uint32_t fourcc;
+
+    int err = get_metadata(mapper, handle, MetadataType_PixelFormatFourCC, decodePixelFormatFourCC, &fourcc);
+    assert(err == android::NO_ERROR);
+
+    return fourcc;
+}
+
+uint64_t get_format_modifier(buffer_handle_t handle)
+{
+
+  auto &mapper = get_service();
+  uint64_t modifier;
+
+  int err = get_metadata(mapper, handle, MetadataType_PixelFormatModifier, decodePixelFormatModifier, &modifier);
+  assert(err == android::NO_ERROR);
+
+  return modifier;
 }
 
 status_t importBuffer(buffer_handle_t rawHandle, buffer_handle_t* outHandle)

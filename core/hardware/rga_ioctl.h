@@ -19,8 +19,11 @@
 #ifndef _RGA_DRIVER_IOCTL_H_
 #define _RGA_DRIVER_IOCTL_H_
 
-#include <asm/ioctl.h>
 #include <stdint.h>
+
+#ifndef RT_THREAD
+#include <sys/ioctl.h>
+#endif
 
 /* compatible */
 #include "rga2_driver.h"
@@ -66,7 +69,7 @@ extern "C"
 #define RGA_REG_CMD_LEN     0x1c   /* 28 */
 #define RGA_CMD_BUF_SIZE    0x700  /* 16*28*4 */
 
-#define RGA_TASK_NUM_MAX		50
+#define RGA_TASK_NUM_MAX		256
 
 #define RGA_SCHED_PRIORITY_DEFAULT 0
 #define RGA_SCHED_PRIORITY_MAX 6
@@ -115,6 +118,13 @@ enum {
     nearby   = 0x0,     /* no rotate */
     bilinear = 0x1,     /* rotate    */
     bicubic  = 0x2,     /* x_mirror  */
+};
+
+enum rga_scale_interp {
+    RGA_INTERP_DEFAULT   = 0x0,
+    RGA_INTERP_LINEAR    = 0x1,
+    RGA_INTERP_BICUBIC   = 0x2,
+    RGA_INTERP_AVERAGE   = 0x3,
 };
 
 /* RGA rotate mode */
@@ -242,6 +252,11 @@ typedef struct rga_mosaic_info_ioctl {
     uint8_t enable;
     uint8_t mode;
 } rga_mosaic_info_t;
+
+typedef struct rga_gauss_config_ioctl {
+    uint32_t size;
+    uint64_t coe_ptr;
+} rga_gauss_config_t;
 
 typedef struct rga_pre_intr_info_ioctl {
     uint8_t enable;
@@ -391,6 +406,17 @@ struct rga_feature {
     uint32_t user_close_fence:1;
 };
 
+struct rga_interp {
+    uint8_t horiz:4;
+    uint8_t verti:4;
+};
+
+struct rga_rgba5551_alpha {
+    uint16_t flags;
+    uint8_t alpha0;
+    uint8_t alpha1;
+};
+
 struct rga_req {
     uint8_t render_mode;                  /* (enum) process mode sel */
 
@@ -419,7 +445,10 @@ struct rga_req {
                                           /* ([8] = 1 nn_quantize)            */
                                           /* ([9] = 1 Real color mode)        */
 
-    uint8_t  scale_mode;                  /* 0 nearst / 1 bilnear / 2 bicubic */
+    union {
+        struct rga_interp interp;
+        uint8_t scale_mode;               /* 0 nearst / 1 bilnear / 2 bicubic */
+    };
 
     uint32_t color_key_max;               /* color key max */
     uint32_t color_key_min;               /* color key min */
@@ -493,7 +522,11 @@ struct rga_req {
 
     struct rga_csc_clip full_csc_clip;
 
-    uint8_t reservr[43];
+    struct rga_rgba5551_alpha rgba5551_alpha;
+
+    rga_gauss_config_t gauss_config;
+
+    uint8_t reservr[24];
 };
 
 struct rga_user_request {

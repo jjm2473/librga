@@ -16,31 +16,147 @@
  * limitations under the License.
  */
 
+#ifndef _IM2D_SLT_CONFIG_H_
+#define _IM2D_SLT_CONFIG_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+
+#include "im2d.h"
+#include "rga.h"
+
+#include "rga_slt_crc.h"
+
+/* dma-heap path */
+#define DEFAULT_DMA_HEAP_PATH              "/dev/dma_heap/system-uncached"
+#define DEFAULT_DMA32_HEAP_PATH            "/dev/dma_heap/system-uncached-dma32"
+#define DEFAULT_CMA_HEAP_PATH              "/dev/dma_heap/cma-uncached"
+#define DEFAULT_RK_DMA_HEAP_PATH           "/dev/rk_dma_heap/rk-dma-heap-cma"
+
+/* image path */
+#define IM2D_SLT_DEFAULT_INPUT_PATH         "/data/rga_slt"
+#define IM2D_SLT_DEFAULT_OUTPUT_PATH        "/data/rga_slt"
+
+/* crc32 golden config */
+#define IM2D_SLT_GENERATE_CRC_GOLDEN_SUFFIX "crcdata"
+#define IM2D_SLT_DEFAULT_GOLDEN_PATH        "/data/rga_slt/golden"
+
 /* im2d_slt config */
-#define IM2D_SLT_THREAD_EN              1   /* Enable multi-threaded mode. */
-#define IM2D_SLT_THREAD_MAX             10  /* Maximum number of threads. */
-#define IM2D_SLT_WHILE_EN               1   /* Enable while mode, 1: while, 0 single. */
-#define IM2D_SLT_WHILE_NUM              3   /* Number of while mode. */
+#define IM2D_SLT_THREAD_EN                  true    /* Enable multi-threaded mode. */
+#define IM2D_SLT_TEST_THREAD_MAX            10      /* Maximum number of threads. */
+#define IM2D_SLT_PERF_THREAD_MAX            5       /* Maximum number of threads for perf test. */
+#define IM2D_SLT_THREAD_MAX                 (IM2D_SLT_TEST_THREAD_MAX + IM2D_SLT_PERF_THREAD_MAX)
+#define IM2D_SLT_WHILE_NUM                  500     /* Number of while mode. */
 
-#define IM2D_SLT_DRM_BUFFER_EN          0   /* Enable use drm buffer. */
-#define IM2D_SLT_GRAPHICBUFFER_EN       0   /* Enable use GraphicBuffer. */
-#define IM2D_SLT_RK_DMA_HEAP_EN         1   /* Enable rk_dma_heap. Only rv1106. */
-#define IM2D_SLT_BUFFER_CACHEABLE       0   /* Enable buffer cache. Only support GraphicBuffer. */
-#define IM2D_SLT_BUFFER_PHY_EN          0   /* Enable physical memory. Only support drm buffer.*/
+#define IM2D_SLT_TEST_PERF_EN               false   /* Enable perf test. */
 
-#define IM2D_SLT_TEST_RGA2_EN           1   /* Enable rga2 case. */
-#define IM2D_SLT_TEST_RGA3_0_EN         0   /* Enable rga3_core0 case. */
-#define IM2D_SLT_TEST_RGA3_1_EN         0   /* Enable rga3_core1 case. */
-#define IM2D_SLT_TEST_RGA3_0_FBC_EN     0   /* Enable rga3_core0 fbc_mode case. */
-#define IM2D_SLT_TEST_RGA3_1_FBC_EN     0   /* Enable rga3_core1 fbc_mode case. */
+enum RGA_SLT_FUNC_FLAGS {
+    RGA_SLT_FUNC_DIS_ALPHA = 1 << 0,
+};
 
-#define IM2D_SLT_DEFAULT_WIDTH          1280                        /* Default image width. */
-#define IM2D_SLT_DEFAULT_HEIGHT         720                         /* Default image height. */
-#if IM2D_SLT_GRAPHICBUFFER_EN
-#define IM2D_SLT_DEFAULT_FORMAT         HAL_PIXEL_FORMAT_RGBA_8888  /* Default image format. */
-#else
-#define IM2D_SLT_DEFAULT_FORMAT         RK_FORMAT_RGBA_8888         /* Default image format. */
-#endif
+struct im2d_slt_config {
+    int default_width;
+    int default_height;
+    int default_format;
 
-#define IM2D_SLT_DEFAULT_INPUT_PATH     "/userdata"
-#define IM2D_SLT_DEFAULT_OUTPUT_PATH    "/userdata"
+    bool perf_case_en;
+    int while_num;
+
+    bool special_case_en;
+
+    int core_mask;
+    int special_mask;
+    int func_flags;
+
+    const char *heap_path;
+
+    const rga_slt_crc_table *crc_data;
+};
+
+static const struct im2d_slt_config rk3588_config = {
+    .default_width = 1280,
+    .default_height = 720,
+    .default_format = RK_FORMAT_RGBA_8888,
+
+    .perf_case_en = IM2D_SLT_TEST_PERF_EN,
+    .while_num = IM2D_SLT_WHILE_NUM,
+
+    .special_case_en = true,
+
+    .core_mask = IM_SCHEDULER_RGA2_CORE0 | IM_SCHEDULER_RGA3_CORE0 | IM_SCHEDULER_RGA3_CORE1,
+    .special_mask = IM_AFBC16x16_MODE | IM_TILE8x8_MODE,
+    .func_flags = 0,
+
+    .heap_path = DEFAULT_DMA32_HEAP_PATH,
+};
+
+static const struct im2d_slt_config rk3576_config = {
+    .default_width = 1280,
+    .default_height = 720,
+    .default_format = RK_FORMAT_RGBA_8888,
+
+    .perf_case_en = IM2D_SLT_TEST_PERF_EN,
+    .while_num = IM2D_SLT_WHILE_NUM,
+
+    .special_case_en = true,
+
+    .core_mask = IM_SCHEDULER_RGA2_CORE0 | IM_SCHEDULER_RGA2_CORE1,
+    .special_mask = IM_AFBC32x8_MODE | IM_RKFBC64x4_MODE | IM_TILE4x4_MODE,
+    .func_flags = 0,
+
+    .heap_path = DEFAULT_DMA32_HEAP_PATH,
+};
+
+static const struct im2d_slt_config common_rga2_config = {
+    .default_width = 1280,
+    .default_height = 720,
+    .default_format = RK_FORMAT_RGBA_8888,
+
+    .perf_case_en = IM2D_SLT_TEST_PERF_EN,
+    .while_num = IM2D_SLT_WHILE_NUM,
+
+    .special_case_en = false,
+
+    .core_mask = IM_SCHEDULER_RGA2_CORE0,
+    .special_mask = 0,
+    .func_flags = 0,
+
+    .heap_path = DEFAULT_DMA32_HEAP_PATH,
+    .crc_data = &common_golden_data,
+};
+
+static const struct im2d_slt_config rv1103b_config = {
+    .default_width = 1280,
+    .default_height = 720,
+    .default_format = RK_FORMAT_RGBA_8888,
+
+    .perf_case_en = IM2D_SLT_TEST_PERF_EN,
+    .while_num = IM2D_SLT_WHILE_NUM,
+
+    .special_case_en = false,
+
+    .core_mask = IM_SCHEDULER_RGA2_CORE0,
+    .special_mask = 0,
+    .func_flags = RGA_SLT_FUNC_DIS_ALPHA,
+
+    .heap_path = DEFAULT_RK_DMA_HEAP_PATH,
+};
+
+static const struct im2d_slt_config rk3506_config = {
+    .default_width = 1280,
+    .default_height = 720,
+    .default_format = RK_FORMAT_ARGB_4444,
+
+    .perf_case_en = IM2D_SLT_TEST_PERF_EN,
+    .while_num = IM2D_SLT_WHILE_NUM,
+
+    .special_case_en = false,
+
+    .core_mask = IM_SCHEDULER_RGA2_CORE0,
+    .special_mask = 0,
+    .func_flags = RGA_SLT_FUNC_DIS_ALPHA,
+
+    .heap_path = 0,
+};
+
+#endif /* #ifndef _IM2D_SLT_CONFIG_H_ */

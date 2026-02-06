@@ -16,15 +16,95 @@
  * limitations under the License.
  */
 
-#include "NormalRga.h"
+#include <string.h>
+
 #include "NormalRgaContext.h"
+#include "drmrga.h"
 #include "rga.h"
+
 #ifdef ANDROID
+#include "hardware/hardware_rockchip.h"
 #include "GrallocOps.h"
 #endif
 
-int         sina_table[360];
-int         cosa_table[360];
+#include "utils/utils.h"
+
+static const int sina_table[360] = {
+    0,   1144,   2287,   3430,   4572,   5712,   6850,   7987,   9121,  10252,
+    11380,  12505,  13626,  14742,  15855,  16962,  18064,  19161,  20252,  21336,
+    22415,  23486,  24550,  25607,  26656,  27697,  28729,  29753,  30767,  31772,
+    32768,  33754,  34729,  35693,  36647,  37590,  38521,  39441,  40348,  41243,
+    42126,  42995,  43852,  44695,  45525,  46341,  47143,  47930,  48703,  49461,
+    50203,  50931,  51643,  52339,  53020,  53684,  54332,  54963,  55578,  56175,
+    56756,  57319,  57865,  58393,  58903,  59396,  59870,  60326,  60764,  61183,
+    61584,  61966,  62328,  62672,  62997,  63303,  63589,  63856,  64104,  64332,
+    64540,  64729,  64898,  65048,  65177,  65287,  65376,  65446,  65496,  65526,
+    65536,  65526,  65496,  65446,  65376,  65287,  65177,  65048,  64898,  64729,
+    64540,  64332,  64104,  63856,  63589,  63303,  62997,  62672,  62328,  61966,
+    61584,  61183,  60764,  60326,  59870,  59396,  58903,  58393,  57865,  57319,
+    56756,  56175,  55578,  54963,  54332,  53684,  53020,  52339,  51643,  50931,
+    50203,  49461,  48703,  47930,  47143,  46341,  45525,  44695,  43852,  42995,
+    42126,  41243,  40348,  39441,  38521,  37590,  36647,  35693,  34729,  33754,
+    32768,  31772,  30767,  29753,  28729,  27697,  26656,  25607,  24550,  23486,
+    22415,  21336,  20252,  19161,  18064,  16962,  15855,  14742,  13626,  12505,
+    11380,  10252,   9121,   7987,   6850,   5712,   4572,   3430,   2287,   1144,
+    0,  -1144,  -2287,  -3430,  -4572,  -5712,  -6850,  -7987,  -9121, -10252,
+    -11380, -12505, -13626, -14742, -15855, -16962, -18064, -19161, -20252, -21336,
+    -22415, -23486, -24550, -25607, -26656, -27697, -28729, -29753, -30767, -31772,
+    -32768, -33754, -34729, -35693, -36647, -37590, -38521, -39441, -40348, -41243,
+    -42126, -42995, -43852, -44695, -45525, -46341, -47143, -47930, -48703, -49461,
+    -50203, -50931, -51643, -52339, -53020, -53684, -54332, -54963, -55578, -56175,
+    -56756, -57319, -57865, -58393, -58903, -59396, -59870, -60326, -60764, -61183,
+    -61584, -61966, -62328, -62672, -62997, -63303, -63589, -63856, -64104, -64332,
+    -64540, -64729, -64898, -65048, -65177, -65287, -65376, -65446, -65496, -65526,
+    -65536, -65526, -65496, -65446, -65376, -65287, -65177, -65048, -64898, -64729,
+    -64540, -64332, -64104, -63856, -63589, -63303, -62997, -62672, -62328, -61966,
+    -61584, -61183, -60764, -60326, -59870, -59396, -58903, -58393, -57865, -57319,
+    -56756, -56175, -55578, -54963, -54332, -53684, -53020, -52339, -51643, -50931,
+    -50203, -49461, -48703, -47930, -47143, -46341, -45525, -44695, -43852, -42995,
+    -42126, -41243, -40348, -39441, -38521, -37590, -36647, -35693, -34729, -33754,
+    -32768, -31772, -30767, -29753, -28729, -27697, -26656, -25607, -24550, -23486,
+    -22415, -21336, -20252, -19161, -18064, -16962, -15855, -14742, -13626, -12505,
+    -11380, -10252, -9121,   -7987,  -6850,  -5712,  -4572,  -3430,  -2287,  -1144
+};
+static const int cosa_table[360] = {
+    65536,  65526,  65496,  65446,  65376,  65287,  65177,  65048,  64898,  64729,
+    64540,  64332,  64104,  63856,  63589,  63303,  62997,  62672,  62328,  61966,
+    61584,  61183,  60764,  60326,  59870,  59396,  58903,  58393,  57865,  57319,
+    56756,  56175,  55578,  54963,  54332,  53684,  53020,  52339,  51643,  50931,
+    50203,  49461,  48703,  47930,  47143,  46341,  45525,  44695,  43852,  42995,
+    42126,  41243,  40348,  39441,  38521,  37590,  36647,  35693,  34729,  33754,
+    32768,  31772,  30767,  29753,  28729,  27697,  26656,  25607,  24550,  23486,
+    22415,  21336,  20252,  19161,  18064,  16962,  15855,  14742,  13626,  12505,
+    11380,  10252,   9121,   7987,   6850,   5712,   4572,   3430,   2287,   1144,
+    0,  -1144,  -2287,  -3430,  -4572,  -5712,  -6850,  -7987,  -9121, -10252,
+    -11380, -12505, -13626, -14742, -15855, -16962, -18064, -19161, -20252, -21336,
+    -22415, -23486, -24550, -25607, -26656, -27697, -28729, -29753, -30767, -31772,
+    -32768, -33754, -34729, -35693, -36647, -37590, -38521, -39441, -40348, -41243,
+    -42126, -42995, -43852, -44695, -45525, -46341, -47143, -47930, -48703, -49461,
+    -50203, -50931, -51643, -52339, -53020, -53684, -54332, -54963, -55578, -56175,
+    -56756, -57319, -57865, -58393, -58903, -59396, -59870, -60326, -60764, -61183,
+    -61584, -61966, -62328, -62672, -62997, -63303, -63589, -63856, -64104, -64332,
+    -64540, -64729, -64898, -65048, -65177, -65287, -65376, -65446, -65496, -65526,
+    -65536, -65526, -65496, -65446, -65376, -65287, -65177, -65048, -64898, -64729,
+    -64540, -64332, -64104, -63856, -63589, -63303, -62997, -62672, -62328, -61966,
+    -61584, -61183, -60764, -60326, -59870, -59396, -58903, -58393, -57865, -57319,
+    -56756, -56175, -55578, -54963, -54332, -53684, -53020, -52339, -51643, -50931,
+    -50203, -49461, -48703, -47930, -47143, -46341, -45525, -44695, -43852, -42995,
+    -42126, -41243, -40348, -39441, -38521, -37590, -36647, -35693, -34729, -33754,
+    -32768, -31772, -30767, -29753, -28729, -27697, -26656, -25607, -24550, -23486,
+    -22415, -21336, -20252, -19161, -18064, -16962, -15855, -14742, -13626, -12505,
+    -11380, -10252,  -9121,  -7987,  -6850,  -5712,  -4572,  -3430,  -2287,  -1144,
+    0,   1144,   2287,   3430,   4572,   5712,   6850,   7987,   9121,  10252,
+    11380,  12505,  13626,  14742,  15855,  16962,  18064,  19161,  20252,  21336,
+    22415,  23486,  24550,  25607,  26656,  27697,  28729,  29753,  30767,  31772,
+    32768,  33754,  34729,  35693,  36647,  37590,  38521,  39441,  40348,  41243,
+    42126,  42995,  43852,  44695,  45525,  46341,  47143,  47930,  48703,  49461,
+    50203,  50931,  51643,  52339,  53020,  53684,  54332,  54963,  55578,  56175,
+    56756,  57319,  57865,  58393,  58903,  59396,  59870,  60326,  60764,  61183,
+    61584,  61966,  62328,  62672,  62997,  63303,  63589,  63856,  64104,  64332,
+    64540,  64729,  64898,  65048,  65177,  65287,  65376,  65446,  65496,  65526
+};
 /**********************************************************************
   =======================================================================
  **********************************************************************/
@@ -134,6 +214,22 @@ uint32_t bytesPerPixel(int format) {
     return 0;
 }
 
+bool NormalRgaIsBppFormat(int format) {
+    return is_bpp_format(format);
+}
+
+bool NormalRgaIsYuvFormat(int format) {
+    return is_yuv_format(format);
+}
+
+bool NormalRgaIsRgbFormat(int format) {
+    return is_rgb_format(format);
+}
+
+bool NormalRgaFormatHasAlpha(int format) {
+    return is_alpha_format(format);
+}
+
 int checkRectForRga(rga_rect_t rect) {
     if (rect.xoffset < 0 || rect.yoffset < 0) {
         ALOGE("err offset[%d,%d]", rect.xoffset, rect.yoffset);
@@ -173,7 +269,7 @@ int isRectValid(rga_rect_t rect) {
 int NormalRgaGetRects(buffer_handle_t src,
                       buffer_handle_t dst,int* sType,int* dType,drm_rga_t* tmpRects) {
     int ret = 0;
-    std::vector<int> srcAttrs,dstAttrs;
+    rga_gralloc_attr_t srcAttrs,dstAttrs;
     if (src)
         ret = RkRgaGetHandleAttributes(src, &srcAttrs);
     if (ret) {
@@ -217,7 +313,7 @@ int NormalRgaGetRects(buffer_handle_t src,
 
 int NormalRgaGetRect(buffer_handle_t hnd, rga_rect_t *rect) {
     int ret = 0;
-    std::vector<int> dstAttrs;
+    rga_gralloc_attr_t dstAttrs;
 
     if (!rect) {
         ALOGE("Get rect but rect[%p] is null point", rect);
@@ -244,7 +340,7 @@ int NormalRgaGetRect(buffer_handle_t hnd, rga_rect_t *rect) {
 
 int NormalRgaGetMmuType(buffer_handle_t hnd, int *mmuType) {
     int ret = 0;
-    std::vector<int> dstAttrs;
+    rga_gralloc_attr_t dstAttrs;
 
     if (!mmuType) {
         ALOGE("Get rect but mmuType[%p] is null point", mmuType);
@@ -305,17 +401,10 @@ int NormalRgaSetFdsOffsets(struct rga_req *req,
     return 0;
 }
 
-#if defined(__arm64__) || defined(__aarch64__)
 int NormalRgaSetSrcVirtualInfo(struct rga_req *req,
-                               unsigned long yrgb_addr,unsigned long uv_addr,unsigned long v_addr,
-                               unsigned int vir_w,unsigned int vir_h, unsigned int format,
-                               unsigned char a_swap_en)
-#else
-int NormalRgaSetSrcVirtualInfo(struct rga_req *req,
-                               unsigned int yrgb_addr, unsigned int uv_addr,unsigned int v_addr,
+                               uintptr_t yrgb_addr, uintptr_t uv_addr, uintptr_t v_addr,
                                unsigned int vir_w, unsigned int vir_h, unsigned int format,
                                unsigned char a_swap_en)
-#endif
 {
     req->src.yrgb_addr = yrgb_addr;
     req->src.uv_addr  = uv_addr;
@@ -339,19 +428,11 @@ int NormalRgaSetDstActiveInfo(struct rga_req *req,
     return 1;
 }
 
-#if defined(__arm64__) || defined(__aarch64__)
 int NormalRgaSetDstVirtualInfo(struct rga_req *msg,
-                               unsigned long yrgb_addr,unsigned long uv_addr,unsigned long v_addr,
+                               uintptr_t yrgb_addr, uintptr_t uv_addr, uintptr_t v_addr,
                                unsigned int  vir_w,    unsigned int vir_h,
                                RECT *clip,
                                unsigned int format, unsigned char a_swap_en)
-#else
-int NormalRgaSetDstVirtualInfo(struct rga_req *msg,
-                               unsigned int yrgb_addr,unsigned int uv_addr,  unsigned int v_addr,
-                               unsigned int vir_w,    unsigned int vir_h,
-                               RECT *clip,
-                               unsigned int  format, unsigned char a_swap_en)
-#endif
 {
     msg->dst.yrgb_addr = yrgb_addr;
     msg->dst.uv_addr  = uv_addr;
@@ -380,19 +461,11 @@ int NormalRgaSetPatActiveInfo(struct rga_req *req,
     return 1;
 }
 
-#if defined(__arm64__) || defined(__aarch64__)
 int NormalRgaSetPatVirtualInfo(struct rga_req *msg,
-                               unsigned long yrgb_addr,unsigned long uv_addr,unsigned long v_addr,
+                               uintptr_t yrgb_addr, uintptr_t uv_addr, uintptr_t v_addr,
                                unsigned int  vir_w,    unsigned int vir_h,
                                RECT *clip,
                                unsigned int format, unsigned char a_swap_en)
-#else
-int NormalRgaSetPatVirtualInfo(struct rga_req *msg,
-                               unsigned int yrgb_addr,unsigned int uv_addr,  unsigned int v_addr,
-                               unsigned int vir_w,    unsigned int vir_h,
-                               RECT *clip,
-                               unsigned int  format, unsigned char a_swap_en)
-#endif
 {
     msg->pat.yrgb_addr = yrgb_addr;
     msg->pat.uv_addr  = uv_addr;
@@ -424,13 +497,8 @@ int NormalRgaSetPatInfo(struct rga_req *msg,
     return 1;
 }
 
-#if defined(__arm64__) || defined(__aarch64__)
 int NormalRgaSetRopMaskInfo(struct rga_req *msg,
-                            unsigned long rop_mask_addr,unsigned int rop_mask_endian_mode)
-#else
-int NormalRgaSetRopMaskInfo(struct rga_req *msg,
-                            unsigned int rop_mask_addr,unsigned int rop_mask_endian_mode)
-#endif
+                            uintptr_t rop_mask_addr,unsigned int rop_mask_endian_mode)
 {
     msg->rop_mask_addr = rop_mask_addr;
     msg->endian_mode = rop_mask_endian_mode;
@@ -502,129 +570,19 @@ int NormalRgaSetSrcTransModeInfo(struct rga_req *msg,
     return 1;
 }
 
-bool NormalRgaIsBppFormat(int format) {
-    bool ret = false;
-
-    switch (format) {
-        case RK_FORMAT_BPP1:
-        case RK_FORMAT_BPP2:
-        case RK_FORMAT_BPP4:
-        case RK_FORMAT_BPP8:
-            ret = true;
-            break;
-        default:
-            break;
-    }
-
-    return ret;
-}
-
-bool NormalRgaIsYuvFormat(int format) {
-    bool ret = false;
-
-    switch (format) {
-        case RK_FORMAT_YCbCr_422_SP:
-        case RK_FORMAT_YCbCr_422_P:
-        case RK_FORMAT_YCbCr_420_SP:
-        case RK_FORMAT_YCbCr_420_P:
-        case RK_FORMAT_YCrCb_422_SP:
-        case RK_FORMAT_YCrCb_422_P:
-        case RK_FORMAT_YCrCb_420_SP:
-        case RK_FORMAT_YCrCb_420_P:
-        case RK_FORMAT_YVYU_422:
-        case RK_FORMAT_YVYU_420:
-        case RK_FORMAT_VYUY_422:
-        case RK_FORMAT_VYUY_420:
-        case RK_FORMAT_YUYV_422:
-        case RK_FORMAT_YUYV_420:
-        case RK_FORMAT_UYVY_422:
-        case RK_FORMAT_UYVY_420:
-        case RK_FORMAT_Y4:
-        case RK_FORMAT_YCbCr_400:
-        case RK_FORMAT_YCbCr_420_SP_10B:
-        case RK_FORMAT_YCrCb_420_SP_10B:
-        case RK_FORMAT_YCrCb_422_10b_SP:
-        case RK_FORMAT_YCbCr_422_10b_SP:
-            ret = true;
-            break;
-    }
-
-    return ret;
-}
-
-bool NormalRgaIsRgbFormat(int format) {
-    bool ret = false;
-
-    switch (format) {
-        case RK_FORMAT_RGBA_8888:
-        case RK_FORMAT_RGBX_8888:
-        case RK_FORMAT_RGBA_5551:
-        case RK_FORMAT_RGBA_4444:
-        case RK_FORMAT_RGB_888:
-        case RK_FORMAT_RGB_565:
-        case RK_FORMAT_BGRA_8888:
-        case RK_FORMAT_BGRX_8888:
-        case RK_FORMAT_BGRA_5551:
-        case RK_FORMAT_BGRA_4444:
-        case RK_FORMAT_BGR_888:
-        case RK_FORMAT_BGR_565:
-        /*ARGB*/
-        case RK_FORMAT_ARGB_8888:
-        case RK_FORMAT_XRGB_8888:
-        case RK_FORMAT_ARGB_5551:
-        case RK_FORMAT_ARGB_4444:
-        case RK_FORMAT_ABGR_8888:
-        case RK_FORMAT_XBGR_8888:
-        case RK_FORMAT_ABGR_5551:
-        case RK_FORMAT_ABGR_4444:
-            ret = true;
-            break;
-        default:
-            break;
-    }
-
-    return ret;
-}
-
-bool NormalRgaFormatHasAlpha(int format) {
-    bool ret = false;
-
-    switch (format) {
-        case RK_FORMAT_RGBA_8888:
-        case RK_FORMAT_RGBA_5551:
-        case RK_FORMAT_RGBA_4444:
-        case RK_FORMAT_BGRA_8888:
-        case RK_FORMAT_BGRA_5551:
-        case RK_FORMAT_BGRA_4444:
-        case RK_FORMAT_ARGB_8888:
-        case RK_FORMAT_ARGB_5551:
-        case RK_FORMAT_ARGB_4444:
-        case RK_FORMAT_ABGR_8888:
-        case RK_FORMAT_ABGR_5551:
-        case RK_FORMAT_ABGR_4444:
-        case RK_FORMAT_RGBA2BPP:
-            ret = true;
-            break;
-        default:
-            break;
-    }
-
-    return ret;
-}
-
 // 0/near  1/bilnear  2/bicubic
 // 0/copy 1/rotate_scale 2/x_mirror 3/y_mirror
 // rotate angle
 // dither en flag
 // AA flag
 int NormalRgaSetBitbltMode(struct rga_req *msg,
-                           unsigned char scale_mode,  unsigned char rotate_mode,
+                           struct rga_interp *interp,  unsigned char rotate_mode,
                            unsigned int  angle,       unsigned int  dither_en,
                            unsigned int  AA_en,       unsigned int  yuv2rgb_mode) {
     unsigned int alpha_mode;
     msg->render_mode = bitblt_mode;
 
-    msg->scale_mode = scale_mode;
+    msg->interp = *interp;
     msg->rotate_mode = rotate_mode;
 
     msg->sina = sina_table[angle];
@@ -637,7 +595,7 @@ int NormalRgaSetBitbltMode(struct rga_req *msg,
 
     alpha_mode = msg->alpha_rop_mode & 3;
     if(rotate_mode == BB_ROTATE) {
-        if (AA_en == ENABLE) {
+        if (AA_en == true) {
             if ((msg->alpha_rop_flag & 0x3) == 0x1) {
                 if (alpha_mode == 0) {
                     msg->alpha_rop_mode = 0x2;
@@ -777,13 +735,8 @@ int NormalRgaSetPreScalingMode(
 
 /* LUT table addr      */
 /* 1bpp/2bpp/4bpp/8bpp */
-#if defined(__arm64__) || defined(__aarch64__)
 int NormalRgaUpdatePaletteTableMode(
-    struct rga_req *msg,unsigned long LUT_addr,unsigned int palette_mode)
-#else
-int NormalRgaUpdatePaletteTableMode(
-    struct rga_req *msg,unsigned int LUT_addr, unsigned int palette_mode)
-#endif
+    struct rga_req *msg, uintptr_t LUT_addr, unsigned int palette_mode)
 {
     msg->render_mode = update_palette_table_mode;
 
@@ -809,17 +762,10 @@ int NormalRgaUpdatePattenBuffMode(struct rga_req *msg,
     return 1;
 }
 
-#if defined(__arm64__) || defined(__aarch64__)
 int NormalRgaMmuInfo(struct rga_req *msg,
                      unsigned char  mmu_en,   unsigned char  src_flush,
                      unsigned char  dst_flush,unsigned char  cmd_flush,
-                     unsigned long base_addr, unsigned char  page_size)
-#else
-int NormalRgaMmuInfo(struct rga_req *msg,
-                     unsigned char  mmu_en,   unsigned char  src_flush,
-                     unsigned char  dst_flush,unsigned char  cmd_flush,
-                     unsigned int base_addr,  unsigned char  page_size)
-#endif
+                     uintptr_t base_addr, unsigned char  page_size)
 {
     msg->mmu_info.mmu_en    = mmu_en;
     msg->mmu_info.base_addr = base_addr;
@@ -844,7 +790,7 @@ int NormalRgaMmuFlag(struct rga_req *msg,
     return 1;
 }
 
-int NormalRgaNNQuantizeMode(struct rga_req *msg, rga_info *dst) {
+int NormalRgaNNQuantizeMode(struct rga_req *msg, rga_info_t *dst) {
     if (dst->nn.nn_flag == 1) {
         msg->alpha_rop_flag |= (dst->nn.nn_flag << 8);
 
@@ -965,7 +911,7 @@ int NormalRgaFullColorSpaceConvert(struct rga_req *msg, int color_space_mode) {
 
     if (color_space_mode >> 8) {
         memcpy(&msg->full_csc, &default_csc_table, sizeof(full_csc_t));
-        memcpy(&msg->full_csc_clip, clip_ptr, sizeof(full_csc_t));
+        memcpy(&msg->full_csc_clip, clip_ptr, sizeof(struct rga_csc_clip));
         msg->feature.full_csc_clip_en = true;
     }
 
@@ -973,7 +919,7 @@ int NormalRgaFullColorSpaceConvert(struct rga_req *msg, int color_space_mode) {
 }
 
 
-int NormalRgaDitherMode(struct rga_req *msg, rga_info *dst, int format)
+int NormalRgaDitherMode(struct rga_req *msg, rga_info_t *dst, int format)
 {
     if (dst->dither.enable == 1)
     {
@@ -981,7 +927,7 @@ int NormalRgaDitherMode(struct rga_req *msg, rga_info *dst, int format)
         msg->alpha_rop_flag |= (dst->dither.enable << 5);
     }
 
-    if (format == RK_FORMAT_Y4)
+    if (format == RK_FORMAT_Y4 || format == RK_FORMAT_Y8)
     {
         msg->dither_mode = dst->dither.mode;
 
@@ -991,88 +937,6 @@ int NormalRgaDitherMode(struct rga_req *msg, rga_info *dst, int format)
         msg->gr_color.gr_y_g = dst->dither.lut1_h;
     }
 
-    return 0;
-}
-
-int NormalRgaInitTables() {
-    int sinaTable[360] = {
-        0,   1144,   2287,   3430,   4572,   5712,   6850,   7987,   9121,  10252,
-        11380,  12505,  13626,  14742,  15855,  16962,  18064,  19161,  20252,  21336,
-        22415,  23486,  24550,  25607,  26656,  27697,  28729,  29753,  30767,  31772,
-        32768,  33754,  34729,  35693,  36647,  37590,  38521,  39441,  40348,  41243,
-        42126,  42995,  43852,  44695,  45525,  46341,  47143,  47930,  48703,  49461,
-        50203,  50931,  51643,  52339,  53020,  53684,  54332,  54963,  55578,  56175,
-        56756,  57319,  57865,  58393,  58903,  59396,  59870,  60326,  60764,  61183,
-        61584,  61966,  62328,  62672,  62997,  63303,  63589,  63856,  64104,  64332,
-        64540,  64729,  64898,  65048,  65177,  65287,  65376,  65446,  65496,  65526,
-        65536,  65526,  65496,  65446,  65376,  65287,  65177,  65048,  64898,  64729,
-        64540,  64332,  64104,  63856,  63589,  63303,  62997,  62672,  62328,  61966,
-        61584,  61183,  60764,  60326,  59870,  59396,  58903,  58393,  57865,  57319,
-        56756,  56175,  55578,  54963,  54332,  53684,  53020,  52339,  51643,  50931,
-        50203,  49461,  48703,  47930,  47143,  46341,  45525,  44695,  43852,  42995,
-        42126,  41243,  40348,  39441,  38521,  37590,  36647,  35693,  34729,  33754,
-        32768,  31772,  30767,  29753,  28729,  27697,  26656,  25607,  24550,  23486,
-        22415,  21336,  20252,  19161,  18064,  16962,  15855,  14742,  13626,  12505,
-        11380,  10252,   9121,   7987,   6850,   5712,   4572,   3430,   2287,   1144,
-        0,  -1144,  -2287,  -3430,  -4572,  -5712,  -6850,  -7987,  -9121, -10252,
-        -11380, -12505, -13626, -14742, -15855, -16962, -18064, -19161, -20252, -21336,
-        -22415, -23486, -24550, -25607, -26656, -27697, -28729, -29753, -30767, -31772,
-        -32768, -33754, -34729, -35693, -36647, -37590, -38521, -39441, -40348, -41243,
-        -42126, -42995, -43852, -44695, -45525, -46341, -47143, -47930, -48703, -49461,
-        -50203, -50931, -51643, -52339, -53020, -53684, -54332, -54963, -55578, -56175,
-        -56756, -57319, -57865, -58393, -58903, -59396, -59870, -60326, -60764, -61183,
-        -61584, -61966, -62328, -62672, -62997, -63303, -63589, -63856, -64104, -64332,
-        -64540, -64729, -64898, -65048, -65177, -65287, -65376, -65446, -65496, -65526,
-        -65536, -65526, -65496, -65446, -65376, -65287, -65177, -65048, -64898, -64729,
-        -64540, -64332, -64104, -63856, -63589, -63303, -62997, -62672, -62328, -61966,
-        -61584, -61183, -60764, -60326, -59870, -59396, -58903, -58393, -57865, -57319,
-        -56756, -56175, -55578, -54963, -54332, -53684, -53020, -52339, -51643, -50931,
-        -50203, -49461, -48703, -47930, -47143, -46341, -45525, -44695, -43852, -42995,
-        -42126, -41243, -40348, -39441, -38521, -37590, -36647, -35693, -34729, -33754,
-        -32768, -31772, -30767, -29753, -28729, -27697, -26656, -25607, -24550, -23486,
-        -22415, -21336, -20252, -19161, -18064, -16962, -15855, -14742, -13626, -12505,
-        -11380, -10252, -9121,   -7987,  -6850,  -5712,  -4572,  -3430,  -2287,  -1144
-    };
-    int cosaTable[360] = {
-        65536,  65526,  65496,  65446,  65376,  65287,  65177,  65048,  64898,  64729,
-        64540,  64332,  64104,  63856,  63589,  63303,  62997,  62672,  62328,  61966,
-        61584,  61183,  60764,  60326,  59870,  59396,  58903,  58393,  57865,  57319,
-        56756,  56175,  55578,  54963,  54332,  53684,  53020,  52339,  51643,  50931,
-        50203,  49461,  48703,  47930,  47143,  46341,  45525,  44695,  43852,  42995,
-        42126,  41243,  40348,  39441,  38521,  37590,  36647,  35693,  34729,  33754,
-        32768,  31772,  30767,  29753,  28729,  27697,  26656,  25607,  24550,  23486,
-        22415,  21336,  20252,  19161,  18064,  16962,  15855,  14742,  13626,  12505,
-        11380,  10252,   9121,   7987,   6850,   5712,   4572,   3430,   2287,   1144,
-        0,  -1144,  -2287,  -3430,  -4572,  -5712,  -6850,  -7987,  -9121, -10252,
-        -11380, -12505, -13626, -14742, -15855, -16962, -18064, -19161, -20252, -21336,
-        -22415, -23486, -24550, -25607, -26656, -27697, -28729, -29753, -30767, -31772,
-        -32768, -33754, -34729, -35693, -36647, -37590, -38521, -39441, -40348, -41243,
-        -42126, -42995, -43852, -44695, -45525, -46341, -47143, -47930, -48703, -49461,
-        -50203, -50931, -51643, -52339, -53020, -53684, -54332, -54963, -55578, -56175,
-        -56756, -57319, -57865, -58393, -58903, -59396, -59870, -60326, -60764, -61183,
-        -61584, -61966, -62328, -62672, -62997, -63303, -63589, -63856, -64104, -64332,
-        -64540, -64729, -64898, -65048, -65177, -65287, -65376, -65446, -65496, -65526,
-        -65536, -65526, -65496, -65446, -65376, -65287, -65177, -65048, -64898, -64729,
-        -64540, -64332, -64104, -63856, -63589, -63303, -62997, -62672, -62328, -61966,
-        -61584, -61183, -60764, -60326, -59870, -59396, -58903, -58393, -57865, -57319,
-        -56756, -56175, -55578, -54963, -54332, -53684, -53020, -52339, -51643, -50931,
-        -50203, -49461, -48703, -47930, -47143, -46341, -45525, -44695, -43852, -42995,
-        -42126, -41243, -40348, -39441, -38521, -37590, -36647, -35693, -34729, -33754,
-        -32768, -31772, -30767, -29753, -28729, -27697, -26656, -25607, -24550, -23486,
-        -22415, -21336, -20252, -19161, -18064, -16962, -15855, -14742, -13626, -12505,
-        -11380, -10252,  -9121,  -7987,  -6850,  -5712,  -4572,  -3430,  -2287,  -1144,
-        0,   1144,   2287,   3430,   4572,   5712,   6850,   7987,   9121,  10252,
-        11380,  12505,  13626,  14742,  15855,  16962,  18064,  19161,  20252,  21336,
-        22415,  23486,  24550,  25607,  26656,  27697,  28729,  29753,  30767,  31772,
-        32768,  33754,  34729,  35693,  36647,  37590,  38521,  39441,  40348,  41243,
-        42126,  42995,  43852,  44695,  45525,  46341,  47143,  47930,  48703,  49461,
-        50203,  50931,  51643,  52339,  53020,  53684,  54332,  54963,  55578,  56175,
-        56756,  57319,  57865,  58393,  58903,  59396,  59870,  60326,  60764,  61183,
-        61584,  61966,  62328,  62672,  62997,  63303,  63589,  63856,  64104,  64332,
-        64540,  64729,  64898,  65048,  65177,  65287,  65376,  65446,  65496,  65526
-    };
-    memcpy(sina_table, sinaTable, sizeof(sina_table));
-    memcpy(cosa_table, cosaTable, sizeof(cosa_table));
     return 0;
 }
 
@@ -1194,20 +1058,15 @@ static inline void NormalRgaCompatModeConvertRga2FullCsc(rga2_full_csc_t *csc, f
     NormalRgaCompatModeConvertRga2FullCscCoe(&csc->coe_v, &orig_csc->coe_v);
 }
 
-void NormalRgaCompatModeConvertRga2(rga2_req *req, rga_req *orig_req) {
+void NormalRgaCompatModeConvertRga2(struct rga2_req *req, struct rga_req *orig_req) {
     req->render_mode = orig_req->render_mode;
 
     NormalRgaCompatModeConvertRga2ImgeInfo(&req->src, &orig_req->src);
     NormalRgaCompatModeConvertRga2ImgeInfo(&req->dst, &orig_req->dst);
     NormalRgaCompatModeConvertRga2ImgeInfo(&req->pat, &orig_req->pat);
 
-#if defined(__arm64__) || defined(__aarch64__)
-    req->rop_mask_addr = (unsigned long)orig_req->rop_mask_addr;
-    req->LUT_addr = (unsigned long)orig_req->LUT_addr;
-#else
-    req->rop_mask_addr = (unsigned int)orig_req->rop_mask_addr;
-    req->LUT_addr = (unsigned int)orig_req->LUT_addr;
-#endif
+    req->rop_mask_addr = (uintptr_t)orig_req->rop_mask_addr;
+    req->LUT_addr = (uintptr_t)orig_req->LUT_addr;
 
     NormalRgaCompatModeConvertRga2Rect(&req->clip, &orig_req->clip);
 

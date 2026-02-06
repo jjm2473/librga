@@ -35,7 +35,6 @@ pthread_mutex_t mMutex = PTHREAD_MUTEX_INITIALIZER;
 
 volatile int32_t refCount = 0;
 struct rgaContext *rgaCtx = NULL;
-extern struct im2d_job_manager g_im2d_job_manager;
 
 void is_debug_log(void) {
     struct rgaContext *ctx = rgaCtx;
@@ -61,7 +60,7 @@ int get_int_property(void) {
 }
 
 static void rga_set_driver_feature(struct rgaContext *ctx) {
-    if (rga_version_compare(ctx->mDriverVersion, (struct rga_version_t){ 1, 3, 0, {0} }) > 0)
+    if (rga_version_compare(ctx->mDriverVersion, (struct rga_version_t){ 1, 3, 0, {0} }) >= 0)
         ctx->driver_feature |= RGA_DRIVER_FEATURE_USER_CLOSE_FENCE;
 }
 
@@ -132,8 +131,6 @@ int NormalRgaOpen(void **context) {
         }
 
         rga_set_driver_feature(ctx);
-
-        NormalRgaInitTables();
 
         rgaCtx = ctx;
     } else {
@@ -379,7 +376,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1) {
     int srcVirW,srcVirH,srcActW,srcActH,srcXPos,srcYPos;
     int dstVirW,dstVirH,dstActW,dstActH,dstXPos,dstYPos;
     int src1VirW,src1VirH,src1ActW,src1ActH,src1XPos,src1YPos;
-    int scaleMode,rotateMode,orientation,ditherEn;
+    int rotateMode,orientation,ditherEn;
     int srcType,dstType,src1Type,srcMmuFlag,dstMmuFlag,src1MmuFlag;
     int fg_global_alpha, bg_global_alpha;
     int dstFd = -1;
@@ -389,6 +386,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1) {
     int stretch = 0;
     float hScale = 1;
     float vScale = 1;
+    struct rga_interp interp;
     int ret = 0;
     rga_rect_t relSrcRect,tmpSrcRect,relDstRect,tmpDstRect;
     rga_rect_t relSrc1Rect,tmpSrc1Rect;
@@ -401,6 +399,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1) {
     void *src1Buf = NULL;
     RECT clip;
     int sync_mode = RGA_BLIT_SYNC;
+    void *ioc_req = NULL;
 
     //init context
     if (!ctx) {
@@ -442,6 +441,8 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1) {
     if (src) {
         rotation = src->rotation;
         blend = src->blend;
+        interp.horiz = src->scale_mode & 0xf;
+        interp.verti = (src->scale_mode >> 4) & 0xf;
         memcpy(&relSrcRect, &src->rect, sizeof(rga_rect_t));
     }
 
@@ -711,7 +712,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1) {
          * configuration for the src channel, while the other modes do not
          * support globalAlpha configuration.
          */
-        switch (blend) {
+        switch (blend & 0xfff) {
             case 0x405:
                 fg_global_alpha = (blend >> 16) & 0xff;
                 bg_global_alpha = 0xff;
@@ -838,21 +839,47 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1) {
         }
     }
 
-    /* reselect the scale mode. */
-    scaleMode = 0;
     stretch = (hScale != 1.0f) || (vScale != 1.0f);
-    /* scale up use bicubic */
-    if (hScale < 1 || vScale < 1) {
-#ifdef ANDROID
-        if((src->format == HAL_PIXEL_FORMAT_RGBA_8888  ||src->format == HAL_PIXEL_FORMAT_BGRA_8888))
-#elif LINUX
-        if((relSrcRect.format == RK_FORMAT_RGBA_8888  || relSrcRect.format == RK_FORMAT_BGRA_8888))
-#endif
-        scaleMode = 0;     //  force change scale_mode to 0 ,for rga not support
+
+    if (interp.horiz == RGA_INTERP_DEFAULT) {
+        if (hScale > 1.0f)
+            interp.horiz = RGA_INTERP_AVERAGE;
+        else if (hScale < 1.0f)
+            interp.horiz = RGA_INTERP_BICUBIC;
+    }
+
+    if (interp.verti == RGA_INTERP_DEFAULT) {
+        if (vScale > 1.0f) {
+            interp.verti = RGA_INTERP_AVERAGE;
+        } else if (vScale < 1.0f) {
+            if (relSrcRect.width > 1996 ||
+                (relDstRect.width > 1996 && hScale > 1.0f))
+                interp.verti = RGA_INTERP_LINEAR;
+            else
+                interp.verti = RGA_INTERP_BICUBIC;
+        }
+    }
+
+    /* check interpoletion limit */
+    if (interp.verti == RGA_INTERP_BICUBIC && vScale < 1.0f) {
+        if (relSrcRect.width > 1996 ||
+            (relDstRect.width > 1996 && hScale > 1.0f)) {
+            ALOGE("when using bicubic scaling in the vertical direction, it does not support input width larger than %d.",
+                1996);
+            return -EINVAL;
+        }
+    }
+
+    if (((vScale > 1.0f && interp.verti == RGA_INTERP_LINEAR) ||
+         (hScale > 1.0f && interp.horiz == RGA_INTERP_LINEAR)) &&
+        (hScale < 1.0f || vScale < 1.0f)) {
+            ALOGE("when using bilinear scaling for downsizing, it does not support scaling up in other directions.");
+            return -EINVAL;
     }
 
     if(is_out_log())
-        ALOGD("scaleMode = %d , stretch = %d;",scaleMode,stretch);
+        ALOGD("interp[horiz,verti] = [0x%x, 0x%x] , stretch = 0x%x",
+              interp.horiz, interp.verti, stretch);
 
     /*
      * according to the rotation to set corresponding parameter.It's diffrient from the opengl.
@@ -1344,13 +1371,13 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1) {
     }
 
     /* mode
-     * scaleMode:set different algorithm to scale.
+     * interp:set different algorithm to scale.
      * rotateMode:rotation mode
      * Orientation:rotation orientation
      * ditherEn:enable or not.
      * yuvToRgbMode:yuv to rgb, rgb to yuv , or others
      * */
-    NormalRgaSetBitbltMode(&rgaReg, scaleMode, rotateMode, orientation,
+    NormalRgaSetBitbltMode(&rgaReg, &interp, rotateMode, orientation,
                            ditherEn, 0, yuvToRgbMode);
 
     NormalRgaNNQuantizeMode(&rgaReg, dst);
@@ -1408,6 +1435,13 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1) {
         NormalRgaLogOutRgaReq(rgaReg);
     }
 
+    /* RGBA5551 alpha control */
+    if (src->rgba5551_flags == 1) {
+        rgaReg.rgba5551_alpha.flags = src->rgba5551_flags;
+        rgaReg.rgba5551_alpha.alpha0 = src->rgba5551_alpha0;
+        rgaReg.rgba5551_alpha.alpha1 = src->rgba5551_alpha1;
+    }
+
     if(src->sync_mode == RGA_BLIT_ASYNC || dst->sync_mode == RGA_BLIT_ASYNC) {
         sync_mode = RGA_BLIT_ASYNC;
     }
@@ -1423,61 +1457,43 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1) {
     rgaReg.core = dst->core;
     rgaReg.priority = dst->priority;
 
-    if (dst->job_handle > 0) {
-        im_rga_job_t *job = NULL;
+    switch (ctx->driver) {
+        case RGA_DRIVER_IOC_RGA2:
+            rga2_req compat_req;
 
-        g_im2d_job_manager.mutex.lock();
+            memset(&compat_req, 0x0, sizeof(compat_req));
+            NormalRgaCompatModeConvertRga2(&compat_req, &rgaReg);
 
-        job = g_im2d_job_manager.job_map[dst->job_handle];
-        if (job->task_count >= RGA_TASK_NUM_MAX) {
-            printf("job[%d] add task failed! too many tasks, count = %d\n", dst->job_handle, job->task_count);
+            ioc_req = &compat_req;
+            break;
 
-            g_im2d_job_manager.mutex.unlock();
+        case RGA_DRIVER_IOC_MULTI_RGA:
+            ioc_req = &rgaReg;
+            break;
+
+        default:
+            printf("unknow driver[0x%x]\n", ctx->driver);
             return -errno;
-        }
-
-        job->req[job->task_count] = rgaReg;
-        job->task_count++;
-
-        g_im2d_job_manager.mutex.unlock();
-
-        return 0;
-    } else {
-        void *ioc_req = NULL;
-
-        switch (ctx->driver) {
-            case RGA_DRIVER_IOC_RGA2:
-                rga2_req compat_req;
-
-                memset(&compat_req, 0x0, sizeof(compat_req));
-                NormalRgaCompatModeConvertRga2(&compat_req, &rgaReg);
-
-                ioc_req = &compat_req;
-                break;
-
-            case RGA_DRIVER_IOC_MULTI_RGA:
-                ioc_req = &rgaReg;
-                break;
-
-            default:
-                printf("unknow driver[0x%x]\n", ctx->driver);
-                return -errno;
-        }
-
-        do {
-            ret = ioctl(ctx->rgaFd, sync_mode, ioc_req);
-        } while (ret == -1 && (errno == EINTR || errno == 512));   /* ERESTARTSYS is 512. */
-        if(ret) {
-            printf(" %s(%d) RGA_BLIT fail: %s\n",__FUNCTION__, __LINE__,strerror(errno));
-            ALOGE(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
-            return -errno;
-        }
     }
 
-    dst->out_fence_fd = rgaReg.out_fence_fd;
+    do {
+        ret = ioctl(ctx->rgaFd, sync_mode, ioc_req);
+    } while (ret == -1 && (errno == EINTR || errno == 512));   /* ERESTARTSYS is 512. */
+    if(ret) {
+        printf(" %s(%d) RGA_BLIT fail: %s\n",__FUNCTION__, __LINE__,strerror(errno));
+        ALOGE(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
+        return -errno;
+    }
 
-    if ((rgaCtx->driver_feature & RGA_DRIVER_FEATURE_USER_CLOSE_FENCE) &&
-        (dst->in_fence_fd >= 0))
+    if (ctx->driver == RGA_DRIVER_IOC_MULTI_RGA)
+        dst->out_fence_fd = rgaReg.out_fence_fd;
+    else
+        /* release_fence fd set to -1 when driver do not support fence */
+        dst->out_fence_fd = -1;
+
+    if (rgaCtx->driver_feature & RGA_DRIVER_FEATURE_USER_CLOSE_FENCE &&
+        dst->in_fence_fd > 0 &&
+        sync_mode == RGA_BLIT_ASYNC)
         close(dst->in_fence_fd);
 
     return 0;
@@ -1514,6 +1530,7 @@ int RgaCollorFill(rga_info *dst) {
     COLOR_FILL fillColor ;
     void *dstBuf = NULL;
     RECT clip;
+    void *ioc_req = NULL;
 
     int sync_mode = RGA_BLIT_SYNC;
 
@@ -1727,62 +1744,39 @@ int RgaCollorFill(rga_info *dst) {
     rgaReg.core = dst->core;
     rgaReg.priority = dst->priority;
 
-    if (dst->job_handle > 0)
-    {
-        im_rga_job_t *job = NULL;
+    switch (ctx->driver) {
+        case RGA_DRIVER_IOC_RGA2:
+            rga2_req compat_req;
 
-        g_im2d_job_manager.mutex.lock();
+            memset(&compat_req, 0x0, sizeof(compat_req));
+            NormalRgaCompatModeConvertRga2(&compat_req, &rgaReg);
 
-        job = g_im2d_job_manager.job_map[dst->job_handle];
-        if (job->task_count >= RGA_TASK_NUM_MAX) {
-            printf("job[%d] add task failed! too many tasks, count = %d\n", dst->job_handle, job->task_count);
+            ioc_req = &compat_req;
+            break;
 
-            g_im2d_job_manager.mutex.unlock();
+        case RGA_DRIVER_IOC_MULTI_RGA:
+            ioc_req = &rgaReg;
+            break;
+
+        default:
+            printf("unknow driver[0x%x]\n", ctx->driver);
             return -errno;
-        }
+    }
 
-        job->req[job->task_count] = rgaReg;
-        job->task_count++;
-
-        g_im2d_job_manager.mutex.unlock();
-
-        return 0;
-    } else {
-        void *ioc_req = NULL;
-
-        switch (ctx->driver) {
-            case RGA_DRIVER_IOC_RGA2:
-                rga2_req compat_req;
-
-                memset(&compat_req, 0x0, sizeof(compat_req));
-                NormalRgaCompatModeConvertRga2(&compat_req, &rgaReg);
-
-                ioc_req = &compat_req;
-                break;
-
-            case RGA_DRIVER_IOC_MULTI_RGA:
-                ioc_req = &rgaReg;
-                break;
-
-            default:
-                printf("unknow driver[0x%x]\n", ctx->driver);
-                return -errno;
-        }
-
-        do {
-            ret = ioctl(ctx->rgaFd, sync_mode, ioc_req);
-        } while (ret == -1 && (errno == EINTR || errno == 512));   /* ERESTARTSYS is 512. */
-        if(ret) {
-            printf(" %s(%d) RGA_COLORFILL fail: %s\n",__FUNCTION__, __LINE__,strerror(errno));
-            ALOGE(" %s(%d) RGA_COLORFILL fail: %s",__FUNCTION__, __LINE__,strerror(errno));
-            return -errno;
-        }
+    do {
+        ret = ioctl(ctx->rgaFd, sync_mode, ioc_req);
+    } while (ret == -1 && (errno == EINTR || errno == 512));   /* ERESTARTSYS is 512. */
+    if(ret) {
+        printf(" %s(%d) RGA_COLORFILL fail: %s\n",__FUNCTION__, __LINE__,strerror(errno));
+        ALOGE(" %s(%d) RGA_COLORFILL fail: %s",__FUNCTION__, __LINE__,strerror(errno));
+        return -errno;
     }
 
     dst->out_fence_fd = rgaReg.out_fence_fd;
 
-    if ((rgaCtx->driver_feature & RGA_DRIVER_FEATURE_USER_CLOSE_FENCE) &&
-        (dst->in_fence_fd >= 0))
+    if (rgaCtx->driver_feature & RGA_DRIVER_FEATURE_USER_CLOSE_FENCE &&
+        dst->in_fence_fd > 0 &&
+        sync_mode == RGA_BLIT_ASYNC)
         close(dst->in_fence_fd);
 
     return 0;
@@ -2400,12 +2394,6 @@ int RgaCollorPalette(rga_info *src, rga_info *dst, rga_info *lut) {
         ALOGE(" %s(%d) RGA_COLOR_PALETTE fail: %s",__FUNCTION__, __LINE__,strerror(errno));
         return -errno;
     }
-
-    dst->out_fence_fd = rgaReg.out_fence_fd;
-
-    if ((rgaCtx->driver_feature & RGA_DRIVER_FEATURE_USER_CLOSE_FENCE) &&
-        (dst->in_fence_fd >= 0))
-        close(dst->in_fence_fd);
 
     return 0;
 }

@@ -106,7 +106,11 @@ RGA_SINGLETON_STATIC_INSTANCE(RockchipRga)
 #ifdef ANDROID
         property_set("vendor.rga_api.version", RGA_API_VERSION);
 #endif
-        ALOGE("%s", RGA_API_FULL_VERSION);
+        ALOGI("current %s. "
+              "The called RockchipRga API is deprecated and will be removed in a future release, "
+              "currently using the legacy API for compatibility. "
+              "Please refer to the latest IM2D API documentation to update your implementation.",
+              RGA_API_FULL_VERSION);
     }
 
     RockchipRga::~RockchipRga() {
@@ -120,7 +124,7 @@ RGA_SINGLETON_STATIC_INSTANCE(RockchipRga)
             return 0;
 
         ret = RgaInit(&mContext);
-        if(ret == 0)
+        if(ret >= 0)
             mSupportRga = true;
         else
             mSupportRga = false;
@@ -276,7 +280,6 @@ RGA_SINGLETON_STATIC_INSTANCE(RockchipRga)
             RkRgaLogOutUserPara(src);
             RkRgaLogOutUserPara(dst);
             RkRgaLogOutUserPara(src1);
-            ALOGE("This output the user parameters when rga call blit fail");
         }
         return ret;
     }
@@ -302,7 +305,6 @@ RGA_SINGLETON_STATIC_INSTANCE(RockchipRga)
         if (ret) {
             RkRgaLogOutUserPara(src);
             RkRgaLogOutUserPara(dst);
-            ALOGE("This output the user parameters when rga call CollorPalette fail");
         }
         return ret;
     }

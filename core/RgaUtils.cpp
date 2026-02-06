@@ -28,12 +28,10 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/mman.h>
-#include <linux/stddef.h>
 
+#include "utils/utils.h"
 #include "RgaUtils.h"
-#include "RockchipRga.h"
-#include "core/NormalRga.h"
+#include "rga.h"
 
 struct format_table_entry {
     int format;
@@ -86,8 +84,8 @@ const struct format_table_entry format_table[] = {
 
     { RK_FORMAT_YCbCr_420_SP_10B,   "nv12_10" },
     { RK_FORMAT_YCrCb_420_SP_10B,   "crcb420sp_10" },
-    { RK_FORMAT_YCbCr_422_10b_SP,   "cbcr422_10b" },
-    { RK_FORMAT_YCrCb_422_10b_SP,   "crcb422_10b" },
+    { RK_FORMAT_YCbCr_422_SP_10B,   "cbcr422_10b" },
+    { RK_FORMAT_YCrCb_422_SP_10B,   "crcb422_10b" },
 
     { RK_FORMAT_BGR_565,            "bgr565" },
     { RK_FORMAT_BGRA_5551,          "bgra5551" },
@@ -103,12 +101,17 @@ const struct format_table_entry format_table[] = {
     { RK_FORMAT_ABGR_4444,          "abgr4444" },
 
     { RK_FORMAT_RGBA2BPP,           "rgba2bpp" },
+    { RK_FORMAT_A8,                 "alpha-8" },
+    { RK_FORMAT_YCbCr_444_SP,       "cbcr444sp" },
+    { RK_FORMAT_YCrCb_444_SP,       "crcb444sp" },
+
+    { RK_FORMAT_Y8,                 "Y8" },
 
     { RK_FORMAT_UNKNOWN,            "unknown" }
 };
 
-const char *translate_format_str(int format) {
-    format = RkRgaGetRgaFormat(format);
+const char *translate_format_str_impl(int format) {
+    format = convert_to_rga_format(format);
 
     for (size_t i = 0; i < sizeof(format_table) / sizeof(format_table[0]); i++)
         if (format_table[i].format == format)
@@ -117,7 +120,7 @@ const char *translate_format_str(int format) {
     return "unknown";
 }
 
-int get_string_by_format(char *value, int format) {
+static int get_string_by_format(char *value, int format) {
     const char *name = NULL;
 
     if (!value)
@@ -135,39 +138,10 @@ int get_string_by_format(char *value, int format) {
     return 0;
 }
 
-float get_bpp_from_format(int format) {
+float get_bpp_from_format_impl(int format) {
     float bpp = 0;
 
-#ifdef LINUX
-    if (!(format & 0xFF00 || format == 0)) {
-        format = RkRgaCompatibleFormat(format);
-    }
-#endif
-
-    switch (format) {
-#ifdef ANDROID
-        case HAL_PIXEL_FORMAT_RGB_565:
-            bpp = 2;
-            break;
-        case HAL_PIXEL_FORMAT_RGB_888:
-            bpp = 3;
-            break;
-        case HAL_PIXEL_FORMAT_RGBA_8888:
-        case HAL_PIXEL_FORMAT_RGBX_8888:
-        case HAL_PIXEL_FORMAT_BGRA_8888:
-            bpp = 4;
-            break;
-        case HAL_PIXEL_FORMAT_YCrCb_420_SP:
-        case HAL_PIXEL_FORMAT_YCrCb_NV12:
-        case HAL_PIXEL_FORMAT_YCrCb_NV12_VIDEO:
-            bpp = 1.5;
-            break;
-        case HAL_PIXEL_FORMAT_YCrCb_NV12_10:
-            /*RK encoder requires alignment of odd multiples of 256.*/
-            /*Here bpp=2 guarantee to read complete data.*/
-            bpp = 2;
-            break;
-#endif
+    switch (convert_to_rga_format(format)) {
         case RK_FORMAT_RGBA2BPP:
             return 0.25;
         case RK_FORMAT_Y4:
@@ -178,6 +152,8 @@ float get_bpp_from_format(int format) {
         case RK_FORMAT_BPP4:
         case RK_FORMAT_BPP8:
         case RK_FORMAT_YCbCr_400:
+        case RK_FORMAT_A8:
+        case RK_FORMAT_Y8:
             bpp = 1;
             break;
         case RK_FORMAT_YCbCr_420_SP:
@@ -217,12 +193,14 @@ float get_bpp_from_format(int format) {
         case RK_FORMAT_YCrCb_420_SP_10B:
             bpp = 2;
             break;
-        case RK_FORMAT_YCbCr_422_10b_SP:
-        case RK_FORMAT_YCrCb_422_10b_SP:
+        case RK_FORMAT_YCbCr_422_SP_10B:
+        case RK_FORMAT_YCrCb_422_SP_10B:
             bpp = 2.5;
             break;
         case RK_FORMAT_BGR_888:
         case RK_FORMAT_RGB_888:
+        case RK_FORMAT_YCbCr_444_SP:
+        case RK_FORMAT_YCrCb_444_SP:
             bpp = 3;
             break;
         case RK_FORMAT_RGBA_8888:
@@ -243,29 +221,8 @@ float get_bpp_from_format(int format) {
     return bpp;
 }
 
-int get_perPixel_stride_from_format(int format) {
-    #ifdef LINUX
-    if (!(format & 0xFF00 || format == 0)) {
-        format = RkRgaCompatibleFormat(format);
-    }
-#endif
-
-    switch (format) {
-#ifdef ANDROID
-        case HAL_PIXEL_FORMAT_RGB_565:
-            return (2 * 8);
-        case HAL_PIXEL_FORMAT_RGB_888:
-            return (3 * 8);
-        case HAL_PIXEL_FORMAT_RGBA_8888:
-        case HAL_PIXEL_FORMAT_RGBX_8888:
-        case HAL_PIXEL_FORMAT_BGRA_8888:
-            return  (4 * 8);
-        case HAL_PIXEL_FORMAT_YCrCb_420_SP:
-        case HAL_PIXEL_FORMAT_YCrCb_NV12:
-            return  (1 * 8);
-        case HAL_PIXEL_FORMAT_YCrCb_NV12_10:
-            return  (1 * 10);
-#endif
+int get_perPixel_stride_from_format_impl(int format) {
+    switch (convert_to_rga_format(format)) {
         case RK_FORMAT_RGBA2BPP:
             return 2;
         case RK_FORMAT_Y4:
@@ -275,6 +232,7 @@ int get_perPixel_stride_from_format(int format) {
         case RK_FORMAT_BPP4:
         case RK_FORMAT_BPP8:
         case RK_FORMAT_YCbCr_400:
+        case RK_FORMAT_A8:
         case RK_FORMAT_YCbCr_420_SP:
         case RK_FORMAT_YCbCr_420_P:
         case RK_FORMAT_YCrCb_420_P:
@@ -283,11 +241,14 @@ int get_perPixel_stride_from_format(int format) {
         case RK_FORMAT_YCbCr_422_P:
         case RK_FORMAT_YCrCb_422_SP:
         case RK_FORMAT_YCrCb_422_P:
+        case RK_FORMAT_YCbCr_444_SP:
+        case RK_FORMAT_YCrCb_444_SP:
+        case RK_FORMAT_Y8:
             return  (1 * 8);
         case RK_FORMAT_YCbCr_420_SP_10B:
         case RK_FORMAT_YCrCb_420_SP_10B:
-        case RK_FORMAT_YCbCr_422_10b_SP:
-        case RK_FORMAT_YCrCb_422_10b_SP:
+        case RK_FORMAT_YCbCr_422_SP_10B:
+        case RK_FORMAT_YCrCb_422_SP_10B:
             return  (1 * 10);
         case RK_FORMAT_RGB_565:
         case RK_FORMAT_RGBA_5551:
@@ -327,7 +288,7 @@ int get_perPixel_stride_from_format(int format) {
     }
 }
 
-int get_buf_size_by_w_h_f(int w, int h, int f) {
+static int get_buf_size_by_w_h_f(int w, int h, int f) {
     float bpp = get_bpp_from_format(f);
     int size = 0;
 
@@ -335,7 +296,7 @@ int get_buf_size_by_w_h_f(int w, int h, int f) {
     return size;
 }
 
-int get_buf_from_file(void *buf, int f, int sw, int sh, int index) {
+int get_buf_from_file_impl(void *buf, int f, int sw, int sh, int index) {
 #ifdef ANDROID
     const char *inputFilePath = "/data/in%dw%d-h%d-%s.bin";
 #endif
@@ -359,7 +320,7 @@ int get_buf_from_file(void *buf, int f, int sw, int sh, int index) {
     return 0;
 }
 
-int get_buf_from_file_FBC(void *buf, int f, int sw, int sh, int index) {
+int get_buf_from_file_FBC_impl(void *buf, int f, int sw, int sh, int index) {
 #ifdef ANDROID
     const char *inputFilePath = "/data/in%dw%d-h%d-%s-afbc.bin";
 #endif
@@ -385,7 +346,7 @@ int get_buf_from_file_FBC(void *buf, int f, int sw, int sh, int index) {
     return 0;
 }
 
-int output_buf_data_to_file(void *buf, int f, int sw, int sh, int index) {
+int output_buf_data_to_file_impl(void *buf, int f, int sw, int sh, int index) {
 #ifdef ANDROID
     const char *outputFilePath = "/data/out%dw%d-h%d-%s.bin";
 #endif
@@ -410,7 +371,7 @@ int output_buf_data_to_file(void *buf, int f, int sw, int sh, int index) {
     return 0;
 }
 
-int output_buf_data_to_file_FBC(void *buf, int f, int sw, int sh, int index) {
+int output_buf_data_to_file_FBC_impl(void *buf, int f, int sw, int sh, int index) {
 #ifdef ANDROID
     const char *outputFilePath = "/data/out%dw%d-h%d-%s-afbc.bin";
 #endif
@@ -435,4 +396,32 @@ int output_buf_data_to_file_FBC(void *buf, int f, int sw, int sh, int index) {
     fclose(file);
 
     return 0;
+}
+
+float get_bpp_from_format(int format) {
+    return get_bpp_from_format_impl(format);
+}
+
+int get_perPixel_stride_from_format(int format) {
+    return get_perPixel_stride_from_format_impl(format);
+}
+
+int get_buf_from_file(void *buf, int f, int sw, int sh, int index) {
+    return get_buf_from_file_impl(buf, f, sw, sh, index);
+}
+
+int output_buf_data_to_file(void *buf, int f, int sw, int sh, int index) {
+    return output_buf_data_to_file_impl(buf, f, sw, sh, index);
+}
+
+const char *translate_format_str(int format) {
+    return translate_format_str_impl(format);
+}
+
+int get_buf_from_file_FBC(void *buf, int f, int sw, int sh, int index) {
+    return get_buf_from_file_FBC_impl(buf, f, sw, sh, index);
+}
+
+int output_buf_data_to_file_FBC(void *buf, int f, int sw, int sh, int index) {
+    return output_buf_data_to_file_FBC_impl(buf, f, sw, sh, index);
 }

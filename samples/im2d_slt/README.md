@@ -32,8 +32,8 @@ out%dw%d-h%d-%s.bin
 - FBC mode
 
 ```
-in%dw%d-h%d-%s-afbc.bin
-out%dw%d-h%d-%s-afbc.bin
+in%dw%d-h%d-%s-fbc.bin
+out%dw%d-h%d-%s-fbc.bin
 
 示例：
 1280×720 RGBA8888的输入图像： in0w1280-h720-rgba8888-afbc.bin
@@ -52,35 +52,36 @@ out%dw%d-h%d-%s-afbc.bin
 
 #### 内存限制
 
-由于RGA2硬件不支持大于32位的物理地址，所以建议测试环境保证地址映射在0~4G地址空间以内。
+由于部分芯片平台搭载的RGA2硬件不支持大于32位的物理地址，所以建议测试环境保证地址映射在0~4G地址空间以内。
 
 
 
 #### 编译配置
 
-在工具编译前，可以通过修改 slt_config.h 配置测试工具，该文件配置可以参考chip_config中的template进行替换使用。
+在工具编译前，可以通过修改 slt_config.h 配置测试工具。
 
-| 配置                         | 说明                                                         |
-| :--------------------------- | :----------------------------------------------------------- |
-| IM2D_SLT_THREAD_EN           | 使能该配置后，将使能多线程模式，每个case都单独在一个线程运行。 |
-| IM2D_SLT_THREAD_MAX          | 多线程模式有效，配置最大的线程数量。                         |
-| IM2D_SLT_WHILE_EN            | 使能该配置后，将使能测试case循环模式。                       |
-| IM2D_SLT_WHILE_NUM           | 循环模式有效，测试case循环次数。                             |
-| IM2D_SLT_DRM_BUFFER_EN       | 使能该配置后，测试工具的内存分配器将选择DRM。                |
-| IM2D_SLT_GRAPHICBUFFER_EN    | 使能该配置后，测试工具的内存分配器将选择Gralloc。            |
-| IM2D_SLT_RK_DMA_HEAP_EN      | 使能该配置后，测试工具的内存分配器将选择rk_dma_deap。        |
-| IM2D_SLT_BUFFER_CACHEABLE    | 使能该配置后，测试工具将申请cacheable的内存。                |
-| IM2D_SLT_BUFFER_PHY_EN       | 使能该配置后，测试工具将申请使用物理地址。                   |
-| IM2D_SLT_TEST_RGA2_EN        | 使能该配置后，将使能RGA2 拷贝测试case。                      |
-| IM2D_SLT_TEST_RGA3_0_EN      | 使能该配置后，将使能RGA3 core0 拷贝测试case。                |
-| IM2D_SLT_TEST_RGA3_1_EN      | 使能该配置后，将使能RGA3 core1 拷贝测试case。                |
-| IM2D_SLT_TEST_RGA3_0_FBC_EN  | 使能该配置后，将使能RGA3 core0 FBC模式 拷贝测试case。        |
-| IM2D_SLT_TEST_RGA3_1_FBC_EN  | 使能该配置后，将使能RGA3 core1 FBC模式 拷贝测试case。        |
-| IM2D_SLT_DEFAULT_WIDTH       | 默认的图像宽。                                               |
-| IM2D_SLT_DEFAULT_HWIGHT      | 默认的图像高。                                               |
-| IM2D_SLT_DEFAULT_FORMAT      | 默认的图像格式。                                             |
-| IM2D_SLT_DEFAULT_INPUT_PATH  | 默认的输入图像路径                                           |
-| IM2D_SLT_DEFAULT_OUTPUT_PATH | 默认的输出图像路径                                           |
+> slt配置
+
+| 配置                | 说明                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| IM2D_SLT_THREAD_EN  | 使能该配置后，将使能多线程模式，每个case都单独在一个线程运行。 |
+| IM2D_SLT_THREAD_MAX | 多线程模式有效，配置最大的线程数量。                         |
+| IM2D_SLT_WHILE_NUM  | perf-test场景有效，默认测试case循环次数。                    |
+
+> perf-test
+
+| 配置                  | 说明                                |
+| --------------------- | ----------------------------------- |
+| IM2D_SLT_TEST_PERF_EN | 使能该配置后，将默认使能perf-test。 |
+
+> 环境配置
+
+| 配置                                | 说明                       |
+| :---------------------------------- | :------------------------- |
+| IM2D_SLT_DEFAULT_INPUT_PATH         | 默认的输入图像路径。       |
+| IM2D_SLT_DEFAULT_OUTPUT_PATH        | 默认的输出图像路径。       |
+| IM2D_SLT_DEFAULT_GOLDEN_PATH        | 默认的golden文件路径。     |
+| IM2D_SLT_GENERATE_CRC_GOLDEN_PREFIX | golden数据的可自定义前缀。 |
 
 
 
@@ -91,7 +92,7 @@ out%dw%d-h%d-%s-afbc.bin
 在配置好Android SDK编译环境后，在源码目录下使用如下命令编译即可。
 
 ```
-mm
+mm -j32
 ```
 
 
@@ -124,25 +125,175 @@ mm
 
 ### 工具运行
 
-将编译生成的im2d_slt 推入设备后，直接运行即可。
+#### 命令介绍
 
+可以通过以下命令获取帮助信息
 
+```shell
+:/ # im2d_slt --help=all
 
-## 结果说明
+====================================================================================================
+   usage: im2d_slt  [--help/-h] [--chip/-c] [--perf/-f] [--input/-i] [--output/-o] [--golden/-g]
+                    [--prefix/-p] [--crc/r]
 
-如果出现以下日志，则说明测试成功。
-
+---------------------------------------- Config ----------------------------------------------------
+         --chip/-c     Set chip
+                         <options>:
+                           <chip>        chip ready for testing, e.g. "--chip=rk3588".
+         --perf/-f     Set perf mode
+                         <options>:
+                           <num>         set loop num, e.g. "--perf=50".
+         --input/-i    Set input image file path.
+                         <options>:
+                           <path>        input image file path, e.g. "--input=/data".
+         --output/-o   Set output image file path.
+                         <options>:
+                           <path>        output image file path, e.g. "--output=/data".
+         --golden/-g   Set golden file path.
+                         <options>:
+                           <path>        golden image file path, e.g. "--golden=/data".
+         --suffix/-p   Set golden suffix.
+                         <options>:
+                           <string>      golden image file suffix, e.g. "--chip=rk3576 --suffix=crcdata", so that the file name is "rk3576_crcdata.bin".
+         --crc/-r      Generate golden by CRC. The target file will be generated according to --golden and --prefix
+---------------------------------------- Other -----------------------------------------------------
+         --help/-h     Call help
+                         <options>:
+                           all           Show full help.
+====================================================================================================
 ```
-:/ # im2d_slt
--------------------------------------------------
-ID[1]: RGA3_core0 imcopy 1 time success!
-ID[1]: RGA3_core0 check buffer 1 time success!
-ID[1]: RGA3_core0 imcopy 2 time success!
-ID[1]: RGA3_core0 check buffer 2 time success!
-ID[1]: RGA3_core0 imcopy 3 time success!
-ID[1]: RGA3_core0 check buffer 3 time success!
-ID[1] RGA3_core0 run end!
--------------------------------------------------
-im2d api slt success!
+
+- --chip：配置需要测试的芯片型号，例如--chip=RK3588、--chip=RK3576等等。
+- --perf：配置当前测试是否需要使能性能测试，可以通过添加传参配置性能测试循环的次数，例如--perf=50，即性能测试循环运行50次。
+- --input：配置当前测试源数据存储的绝对路径，未配置该命令时使用默认路径，默认路径可以通过slt_config.h进行修改。
+- --output：配置当前测试输出数据存储的绝对路径，未配置该命令时使用默认路径，默认路径可以通过slt_config.h进行修改。
+- --golden：配置当前测试读取、输出的golden数据存储的绝对路径，未配置该命令时使用默认路径，默认路径可以通过slt_config.h进行修改。
+- --suffix：配置当前测试读取、输出的golden数据文件名的后缀，未配置该命令时使用默认后缀，默认后缀可以通过slt_config.h进行修改。
+- --crc：配置当前测试使用CRC32生成golden数据，由“--golden/--suffix”指导生成golden数据路径、文件名。
+
+
+
+#### golden生成
+
+通常我们需要先在正常的设备上生成golden数据，用于实际测试场景，如果已经获取golden数据可以跳过该小节。
+
+以下以RK3588为例：
+
+- 创建源/目标数据存放路径，并将准备好的源数据存放到该路径下。
+
+```shell
+:/ # mkdir -p /data/rga
+:/ # mv <source_image> /data/rga/
 ```
 
+- 创建golden存放路径。
+
+```shell
+:/ # mkdir -p /data/rga/golden
+```
+
+- 执行im2d_slt生成golden数据。
+
+```shell
+:/ # im2d_slt --chip=rk3588 --input=/data/rga --output=/data/rga --golden=/data/rga/golden --crc
+set chip[rk3588]
+set input_path[/data/rga]
+set output_path[/data/rga]
+set golden_path[/data/rga/golden]
+enable generate golden by CRC
+-------------------------------------------------
+creat Sync pthread[0x6dae20bbf0] = 1, id = 1
+creat Sync pthread[0x6dae10dbf0] = 2, id = 2
+creat Sync pthread[0x6dae00fbf0] = 3, id = 3
+ID[2]: RGA3_core1 genrate CRC golden /data/rga/golden/crcdata_RGA3_core1.txt
+ID[2]: RGA3_core1 running success!
+ID[1]: RGA3_core0 genrate CRC golden /data/rga/golden/crcdata_RGA3_core0.txt
+ID[1]: RGA3_core0 running success!
+ID[3]: RGA2_core0 genrate CRC golden /data/rga/golden/crcdata_RGA2_core0.txt
+ID[3]: RGA2_core0 running success!
+-------------------------------------------------
+RGA raster-test success!
+-------------------------------------------------
+creat Sync pthread[0x6dae20bbf0] = 1, id = 1
+creat Sync pthread[0x6dae10dbf0] = 2, id = 2
+ID[1]: RGA3_core0_fbc genrate CRC golden /data/rga/golden/crcdata_RGA3_core0_fbc.txt
+ID[1]: RGA3_core0_fbc running success!
+ID[2]: RGA3_core1_fbc genrate CRC golden /data/rga/golden/crcdata_RGA3_core1_fbc.txt
+ID[2]: RGA3_core1_fbc running success!
+-------------------------------------------------
+RGA special-test success!
+-------------------------------------------------
+```
+
+这里可以看到生成了多项.bin/.txt后缀的golden数据到目标路径。
+
+
+
+#### 运行测试
+
+在获取golden数据后，在测试环境下依旧需要准备好环境，并将测试工具以及golden数据推入测试设备。
+
+以下以RK3588为例：
+
+- 创建源/目标数据存放路径，并将准备好的源数据存放到该路径下。
+
+```shell
+:/ # mkdir -p /data/rga
+:/ # mv <source_image> /data/rga/
+```
+
+- 创建golden存放路径，并将准备好的golden数据存放到该路径下。
+
+```shell
+:/ # mkdir -p /data/rga/golden
+```
+
+- 执行im2d_slt，测试当前设备。
+
+```shell
+:/ # im2d_slt --chip=rk3588 --input=/data/rga --output=/data/rga --golden=/data/rga/golden --perf                             set chip[rk3588]
+set input_path[/data/rga]
+set output_path[/data/rga]
+set golden_path[/data/rga/golden]
+set perf[500]
+-------------------------------------------------
+creat Sync pthread[0x79f5e07bf0] = 1, id = 1
+creat Sync pthread[0x79f5d09bf0] = 2, id = 2
+creat Sync pthread[0x79f5c0bbf0] = 3, id = 3
+ID[1]: RGA3_core0 running success!
+ID[2]: RGA3_core1 running success!
+ID[3]: RGA2_core0 running success!
+-------------------------------------------------
+RGA raster-test success!
+-------------------------------------------------
+creat Sync pthread[0x79f5e07bf0] = 1, id = 1
+creat Sync pthread[0x79f5d09bf0] = 2, id = 2
+ID[1]: RGA3_core0_fbc running success!
+ID[2]: RGA3_core1_fbc running success!
+-------------------------------------------------
+RGA special-test success!
+-------------------------------------------------
+creat Sync pthread[0x79f5e07bf0] = 1, id = 1
+creat Sync pthread[0x79f5d09bf0] = 2, id = 2
+creat Sync pthread[0x79f3c0bbf0] = 3, id = 3
+creat Sync pthread[0x79f3b0dbf0] = 4, id = 4
+creat Sync pthread[0x79f2307bf0] = 5, id = 5
+creat Sync pthread[0x79ef3f9bf0] = 6, id = 6
+creat Sync pthread[0x79eef77bf0] = 7, id = 7
+creat Sync pthread[0x79ee069bf0] = 8, id = 8
+creat Sync pthread[0x79ecf6bbf0] = 9, id = 9
+ID[2]: perf_test running success!
+ID[6]: perf_test running success!
+ID[4]: perf_test running success!
+ID[7]: perf_test running success!
+ID[1]: perf_test running success!
+ID[9]: perf_test running success!
+ID[8]: perf_test running success!
+ID[3]: perf_test running success!
+ID[5]: perf_test running success!
+-------------------------------------------------
+RGA perf-test success!
+-------------------------------------------------
+```
+
+确认没有failed项，即说明当前测试成功。
